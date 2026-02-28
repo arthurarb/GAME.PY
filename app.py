@@ -114,6 +114,12 @@ elif st.session_state.na_vila:
     st.subheader("🏘️ Vila")
     t1, t2, t3 = st.tabs(["📜 Missões", "⚒️ Ferreiro", "🧪 Alquimia"])
     with t1:
+        # BOTÃO SOLICITADO: Procurar monstros na vila
+        if st.button("Procurar monstros ao redor 👾"):
+            spawn()
+            st.rerun()
+        
+        st.write("---")
         miss = [
             {"i": "Joshua", "de": "2 Gosmas", "a": {"Gosma 🟢": 2}, "p": 10},
             {"i": "Silas", "de": "5 Gosmas", "a": {"Gosma 🟢": 5}, "p": 20},
@@ -135,7 +141,7 @@ elif st.session_state.na_vila:
                         if st.button(f"Entregar para {x['i']} ✅"):
                             st.session_state.moedas += at['pago']; st.session_state.concluidas.append(x['i'])
                             del st.session_state.missoes_ativas[x['i']]; st.rerun()
-                    else: st.info(f"Missão de {x['i']} em andamento...")
+                    else: st.info(f"Pendente: {x['de']}")
     with t2:
         loja = {"Pedra 🪨": (150, 10), "Ferro ⚔️": (250, 14), "Ouro 👑": (400, 18), "Cavaleiro 🛡️": (1000, 22), "Rei Caído 💀": (3500, 50)}
         for n, (c, d) in loja.items():
