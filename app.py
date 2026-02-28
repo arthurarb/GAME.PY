@@ -27,9 +27,10 @@ def spawn(tipo="n"):
     if tipo == "b":
         st.session_state.monstro = {"n": "🔥 REI DRAGÃO 🔥", "v": 500, "d": 17, "o": 500}
     else:
-        m = [{"n": "Gosma 🟢", "v": 30, "d": 5, "o": 15}, 
-             {"n": "Goblin 👺", "v": 50, "d": 12, "o": 30},
-             {"n": "Dragão 🐲", "v": 80, "d": 18, "o": 60}]
+        # DANOS ATUALIZADOS AQUI: Gosma(4), Goblin(9), Dragão(15)
+        m = [{"n": "Gosma 🟢", "v": 30, "d": 4, "o": 15}, 
+             {"n": "Goblin 👺", "v": 50, "d": 9, "o": 30},
+             {"n": "Dragão 🐲", "v": 80, "d": 15, "o": 60}]
         st.session_state.monstro = random.choice(m)
     st.session_state.em_combate = True
 
@@ -39,7 +40,6 @@ with st.sidebar:
     st.write(f"❤️ Vida: {st.session_state.vida}/100")
     st.progress(max(0.0, min(1.0, st.session_state.vida / 100)))
     
-    # MOSTRAR DÍVIDA EM VERMELHO SE FOR NEGATIVO
     if st.session_state.moedas < 0:
         st.error(f"💰 Moedas: {st.session_state.moedas} (DÍVIDA!)")
     else:
@@ -64,20 +64,15 @@ with st.sidebar:
 # --- LÓGICA PRINCIPAL ---
 st.title("🐲 Dragões e Espadas")
 
-# --- TELA DE MORTE (NOVA LÓGICA) ---
 if st.session_state.vida <= 0:
     st.error("💀 ARTHUR FOI DERROTADO!")
-    st.write("Você deseja pagar o resgate dos clérigos ou recomeçar sua história?")
-    
     col_m1, col_m2 = st.columns(2)
-    
     if col_m1.button("Pagar Resgate (50 💰)"):
         st.session_state.moedas -= 50
         st.session_state.vida = 100
         st.session_state.em_combate = False
-        add_log("Arthur foi resgatado, mas a um custo alto...")
+        add_log("Arthur foi resgatado pelos clérigos.")
         st.rerun()
-        
     if col_m2.button("Recomeçar do Início 🔄"):
         for k in list(st.session_state.keys()): del st.session_state[k]
         st.rerun()
@@ -97,7 +92,9 @@ elif st.session_state.em_combate:
                 if m['n'] in i['p']: i['p'][m['n']] = min(i['a'][m['n']], i['p'][m['n']] + 1)
             st.session_state.em_combate = False
             add_log(f"Vitória! +{m['o']} moedas.")
-        else: st.session_state.vida -= m['d']
+        else: 
+            st.session_state.vida -= m['d']
+            add_log(f"O {m['n']} causou {m['d']} de dano.")
         st.rerun()
     if b2.button("Cura 🧪") and st.session_state.pocoes > 0:
         st.session_state.vida = min(100, st.session_state.vida + 40); st.session_state.pocoes -= 1; st.rerun()
@@ -136,17 +133,17 @@ elif st.session_state.na_vila:
                             st.session_state.moedas += at['pago']
                             if at['u']: st.session_state.concluidas.append(x['i'])
                             del st.session_state.missoes_ativas[x['i']]; st.rerun()
-                    else: st.write(f"{x['i']} espera...")
+                    else: st.write(f"{x['i']} aguarda...")
     with t2:
         for n, i in loja.items():
             if st.button(f"{n} ({i['d']} Dano) - {i['c']}💰"):
                 if st.session_state.moedas >= i['c']:
                     st.session_state.moedas -= i['c']; st.session_state.espada = {"nome": n, "dano": i['d']}; st.rerun()
-                else: st.error("Você não tem moedas suficientes!")
+                else: st.error("Moedas insuficientes!")
     with t3:
         if st.button("Poção (35 💰)"):
             if st.session_state.moedas >= 35: st.session_state.moedas -= 35; st.session_state.pocoes += 1; st.rerun()
-            else: st.error("Você não tem moedas suficientes!")
+            else: st.error("Moedas insuficientes!")
     if st.button("Sair da Vila 🚪"):
         st.session_state.na_vila = False; st.rerun()
 else:
