@@ -74,8 +74,20 @@ st.title("🐲 Dragões e Espadas")
 
 if st.session_state.vida <= 0:
     st.error("💀 DERROTADO!")
-    if st.button("Pagar Resgate (50 💰)"):
-        st.session_state.moedas -= 50; st.session_state.vida = 100; st.session_state.em_combate = False; st.rerun()
+    # REGRA NOVA: Renasce com 25 de vida
+    if st.button("Pagar Resgate (50 💰) e Renascer (25 HP)"):
+        if st.session_state.moedas >= 50:
+            st.session_state.moedas -= 50
+            st.session_state.vida = 25 
+            st.session_state.em_combate = False
+            add_log("Você foi resgatado, mas está muito fraco...")
+            st.rerun()
+        else:
+            st.warning("Você não tem moedas suficientes para o resgate!")
+    
+    if st.button("Novo Jogo (Resetar)"):
+        for k in list(st.session_state.keys()): del st.session_state[k]
+        st.rerun()
 
 elif st.session_state.em_combate:
     m = st.session_state.monstro
@@ -120,7 +132,6 @@ elif st.session_state.na_vila:
     with t1:
         if st.button("Procurar monstros ao redor 👾"): spawn(); st.rerun()
         st.write("---")
-        # NOVAS RECOMPENSAS: 25, 40, 70, 120 e 150
         miss = [
             {"i": "Joshua", "de": "2 Gosmas", "a": {"Gosma 🟢": 2}, "p": 25},
             {"i": "Silas", "de": "5 Gosmas", "a": {"Gosma 🟢": 5}, "p": 40},
@@ -142,7 +153,6 @@ elif st.session_state.na_vila:
                         if st.button(f"Entregar para {x['i']} ✅"):
                             st.session_state.moedas += at['pago']; st.session_state.concluidas.append(x['i'])
                             del st.session_state.missoes_ativas[x['i']]; st.rerun()
-                    else: st.info(f"Pendente: {x['de']}")
     with t2:
         loja = {"Pedra 🪨": (150, 10), "Ferro ⚔️": (250, 14), "Ouro 👑": (400, 18), "Cavaleiro 🛡️": (1000, 22), "Rei Caído 💀": (3500, 50)}
         for n, (c, d) in loja.items():
