@@ -63,17 +63,17 @@ with st.sidebar:
     st.header(f"👤 {st.session_state.nome_heroi}")
     st.write(f"❤️ HP: {st.session_state.vida} / {st.session_state.vida_max}")
     st.progress(max(0.0, min(1.0, st.session_state.vida / st.session_state.vida_max)) if st.session_state.vida_max > 0 else 0.0)
-    st.write(f"🧪 Poções Cura: {st.session_state.pocoes} | ⚡ Poções Fúria: {st.session_state.pocoes_furia}")
+    st.write(f"🧪 Cura: {st.session_state.pocoes} | ⚡ Fúria: {st.session_state.pocoes_furia}")
     st.write(f"🗡️ Arma: {st.session_state.espada['nome']} | 🛡️ Armadura: {st.session_state.armadura['nome']}")
     st.markdown(f"### 💰 {st.session_state.moedas} Moedas")
     
-    # EXIBIÇÃO DAS RODADAS DE FÚRIA (SOLICITADO)
+    # EXIBIÇÃO DAS RODADAS DE FÚRIA (ABAIXO DAS MOEDAS)
     if st.session_state.furia_rodadas > 0:
-        st.warning(f"🔥 FÚRIA ATIVA: {st.session_state.furia_rodadas} rodadas restantes!")
+        st.warning(f"🔥 FÚRIA ATIVA: {st.session_state.furia_rodadas} rodadas!")
     else:
         st.write("❄️ Fúria Inativa")
 
-    # MISSÕES ABAIXO DA FÚRIA
+    # MISSÕES (ABAIXO DA FÚRIA)
     if st.session_state.missoes_ativas:
         st.markdown("---")
         st.subheader("📜 Missões Ativas")
@@ -94,6 +94,17 @@ with st.sidebar:
             if st.button("❤️ VIDA INFINITA"): st.session_state.vida_max = 9999999; st.session_state.vida = 9999999; st.rerun()
             if st.button("🏘️ Spawnar Vila Agora"): st.session_state.achou_vila = True; st.rerun()
             
+            st.write("🏰 Spawnar Dungeon:")
+            dungs_adm = ["Gosmas (Fácil)", "Goblins (Médio)", "Dragões (Difícil)", "COVIL DO REI DRAGÃO 👑"]
+            sel_dung = st.selectbox("Escolher Dungeon:", dungs_adm, key="adm_d")
+            if st.button("Spawnar Dungeon"):
+                st.session_state.dungeon_tipo = sel_dung; st.session_state.em_dungeon = True; st.rerun()
+
+            st.write("👾 Spawnar Monstro:")
+            esc_m = st.selectbox("Escolher Monstro:", ["Gosma 🟢", "Goblin 👺", "Dragão 🐲", "🔥 REI DRAGÃO 🔥", "🌌 DRAGÃO DEUS 🌌"])
+            if st.button("Spawnar Monstro"): spawn(esc_m); st.rerun()
+
+            st.write("⚔️ Trocar Equipamento:")
             armas_adm = {"Madeira 🪵": 7, "Pedra 🪨": 10, "Ferro ⚔️": 14, "Ouro 👑": 18, "Cavaleiro 🛡️": 22, "Rei Caído 💀": 50, "CRIADOR ⚡": 9999}
             sel_arma = st.selectbox("Armas:", list(armas_adm.keys()), key="adm_w")
             if st.button("Equipar Arma"): st.session_state.espada = {"nome": sel_arma, "dano": armas_adm[sel_arma]}; st.rerun()
@@ -139,8 +150,7 @@ elif st.session_state.em_combate:
         st.session_state.vida = min(st.session_state.vida_max, st.session_state.vida + 40); st.session_state.pocoes -= 1; st.rerun()
     
     if b3.button("Fúria ⚡") and st.session_state.pocoes_furia > 0:
-        # LÓGICA ACUMULATIVA (SOLICITADO): +5 rodadas por poção
-        st.session_state.furia_rodadas += 5
+        st.session_state.furia_rodadas += 5 # 5 rodadas acumulativas
         st.session_state.pocoes_furia -= 1; st.rerun()
     
     if b4.button("FUGIR 🏃"): st.session_state.em_combate = False; st.rerun()
