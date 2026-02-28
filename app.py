@@ -1,9 +1,17 @@
+Entendido! Fiz a alteração para que o Arthur nunca mais tenha turnos "vazios". Agora, sempre que ele clicar em Lutar 👾 ou Caçar monstros perto da vila 👾, um monstro aparecerá instantaneamente (100% de chance).
+
+Além disso, mantive a trava de segurança para evitar aquele erro de AttributeError caso você ainda esteja com um jogo salvo antigo.
+
+⚔️ Código Atualizado (100% de Encontro)
+Python
+
 import streamlit as st
 import random
 
 # --- SETUP ---
 st.set_page_config(page_title="Dragões e Espadas", page_icon="🐲", layout="wide")
 
+# Inicialização segura das variáveis
 if 'vida' not in st.session_state:
     st.session_state.update({
         'vida': 100, 'moedas': 20, 'pocoes': 2, 'pocoes_furia': 0,
@@ -14,6 +22,12 @@ if 'vida' not in st.session_state:
         'log': ["Arthur inicia sua jornada!"],
         'missoes_ativas': {}, 'concluidas': []
     })
+
+# Garante que as novas variáveis existam mesmo em saves antigos
+if 'pocoes_furia' not in st.session_state:
+    st.session_state.pocoes_furia = 0
+if 'furia_rodadas' not in st.session_state:
+    st.session_state.furia_rodadas = 0
 
 def add_log(txt):
     st.session_state.log.append(txt)
@@ -117,9 +131,10 @@ elif st.session_state.na_vila:
     t1, t2, t3 = st.tabs(["Aldeões & Caça", "Ferreiro", "Poções"])
     with t1:
         if st.button("Caçar monstros perto da vila 👾"):
-            if random.randint(1, 3) == 1: spawn()
-            else: add_log("Nada encontrado."); st.rerun()
+            spawn() # 100% DE CHANCE
+            st.rerun()
         st.write("--- 👨‍🌾 Missões ---")
+        # ... (código das missões igual ao anterior)
         miss = [
             {"i": "Joshua", "de": "2 Gosmas", "a": {"Gosma 🟢": 2}, "p": 10},
             {"i": "Silas", "de": "5 Gosmas", "a": {"Gosma 🟢": 5}, "p": 20},
@@ -159,11 +174,9 @@ else:
     colA, colB = st.columns(2)
     if colA.button("Andar 🥾"):
         if random.randint(1, 5) == 1: st.session_state.achou_vila = True
-        else: add_log("Nada aqui.")
-        st.rerun()
+        else: add_log("Nada aqui."); st.rerun()
     if colB.button("Lutar 👾"):
-        if random.randint(1, 3) == 1: spawn()
-        else: add_log("Área limpa.")
+        spawn() # 100% DE CHANCE
         st.rerun()
     if st.session_state.achou_vila:
         st.success("🏘️ Vila à vista!")
@@ -171,4 +184,3 @@ else:
         if st.button("Ignorar"): st.session_state.achou_vila = False; st.rerun()
 st.write("---")
 for m in reversed(st.session_state.log[-5:]): st.write(m)
-    
