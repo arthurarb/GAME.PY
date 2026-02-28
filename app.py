@@ -171,3 +171,4 @@ else:
         if st.button("Ignorar"): st.session_state.achou_vila = False; st.rerun()
 st.write("---")
 for m in reversed(st.session_state.log[-5:]): st.write(m)
+    
