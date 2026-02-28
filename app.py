@@ -68,6 +68,11 @@ with st.sidebar:
     st.header(f"👤 {st.session_state.nome_heroi}")
     st.write(f"❤️ HP: {st.session_state.vida} / {st.session_state.vida_max}")
     st.progress(max(0.0, min(1.0, st.session_state.vida / st.session_state.vida_max)) if st.session_state.vida_max > 0 else 0.0)
+    
+    # MOSTRAR POÇÕES (ADICIONADO)
+    st.write(f"🧪 Poções de Cura: {st.session_state.pocoes}")
+    st.write(f"⚡ Poções de Fúria: {st.session_state.pocoes_furia}")
+    
     st.write(f"🗡️ Arma: {st.session_state.espada['nome']}")
     st.write(f"🛡️ Armadura: {st.session_state.armadura['nome']}")
     st.markdown(f"### 💰 {st.session_state.moedas} Moedas")
@@ -80,7 +85,12 @@ with st.sidebar:
             if st.button("💰 Dinheiro Infinito"): st.session_state.moedas += 99999; st.rerun()
             if st.button("🧪 Kit Poções (99)"): st.session_state.pocoes = 99; st.session_state.pocoes_furia = 99; st.rerun()
             
-            # NOVO: Botão de Spawnar Vila
+            # VIDA INFINITA ADM (ADICIONADO)
+            if st.button("❤️ VIDA INFINITA"):
+                st.session_state.vida_max = 9999999
+                st.session_state.vida = 9999999
+                st.rerun()
+
             if st.button("🏘️ Spawnar Vila Agora"):
                 st.session_state.achou_vila = True; st.rerun()
 
@@ -205,16 +215,15 @@ else:
     st.subheader("🗺️ Exploração")
     c1, c2 = st.columns(2)
     if c1.button("Andar 🥾"):
-        # CHANCES ATUALIZADAS CONFORME PEDIDO
-        if random.randint(1, 100) == 1: # 1 em 100
+        if random.randint(1, 100) == 1:
             st.session_state.dungeon_tipo = "COVIL DO REI DRAGÃO 👑"; st.session_state.em_dungeon = True
-        elif random.randint(1, 3) == 1: # 1 em 3
+        elif random.randint(1, 3) == 1:
             st.session_state.achou_vila = True
-        elif random.randint(1, 25) == 1: # 1 em 25
+        elif random.randint(1, 25) == 1:
             st.session_state.dungeon_tipo = "Dragões (Difícil)"; st.session_state.em_dungeon = True
-        elif random.randint(1, 15) == 1: # 1 em 15
+        elif random.randint(1, 15) == 1:
             st.session_state.dungeon_tipo = "Goblins (Médio)"; st.session_state.em_dungeon = True
-        elif random.randint(1, 10) == 1: # 1 em 10
+        elif random.randint(1, 10) == 1:
             st.session_state.dungeon_tipo = "Gosmas (Fácil)"; st.session_state.em_dungeon = True
         st.rerun()
         
