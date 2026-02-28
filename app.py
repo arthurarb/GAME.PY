@@ -1,10 +1,3 @@
-Com certeza! Reajustei os valores das recompensas das missões para os novos valores que você pediu: 25, 40, 70, 120 e 150 moedas. Isso vai ajudar o Arthur a conseguir a Espada de Cavaleiro muito mais rápido!
-
-Também mantive a missão do REI com as 500 moedas, já que é o desafio final.
-
-⚔️ Código Atualizado: Dragões e Espadas
-Python
-
 import streamlit as st
 import random
 import json
