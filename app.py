@@ -63,6 +63,9 @@ with st.sidebar:
     st.write(f"🛡️ Armadura: {st.session_state.armadura['nome']}")
     st.markdown(f"### 💰 {st.session_state.moedas} Moedas")
     
+    # --- BOTÃO DE SALVAMENTO ---
+    st.download_button("💾 SALVAR JOGO", data=export_save(), file_name="save_dragao.json")
+    
     with st.expander("🔐 Painel do Dono"):
         senha = st.text_input("Senha Admin", type="password")
         if senha == "05062012":
@@ -100,7 +103,6 @@ with st.sidebar:
             esc_m = st.selectbox("Monstro:", ["Gosma 🟢", "Goblin 👺", "Dragão 🐲", "🔥 REI DRAGÃO 🔥", "🌌 DRAGÃO DEUS 🌌"])
             if st.button("Spawn Agora"): spawn(esc_m); st.rerun()
 
-    st.download_button("💾 SALVAR", data=export_save(), file_name="save.json")
     if st.button("🔄 Reset Total"):
         for k in list(st.session_state.keys()): del st.session_state[k]
         st.rerun()
