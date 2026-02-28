@@ -111,4 +111,3 @@ elif st.session_state.na_vila:
             if st.button(f"{n} ({i['d']} Dano) - {i['c']}💰"):
                 if st.session_state.moedas >= i['c']:
                     st.session_state.moedas -= i['c']; st.session_state.espada = {"nome": n, "dano": i['d']}; st.rerun()
-    with t3
