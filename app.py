@@ -33,18 +33,35 @@ def spawn(tipo="n"):
         st.session_state.monstro = random.choice(m)
     st.session_state.em_combate = True
 
-# --- UI ---
-st.title("🐲 Dragões e Espadas")
-
+# --- UI SIDEBAR (STATUS E MISSÕES) ---
 with st.sidebar:
     st.header("👤 Status")
     st.write(f"❤️ Vida: {st.session_state.vida}/100")
+    st.progress(max(0, st.session_state.vida / 100))
     st.write(f"💰 Moedas: {st.session_state.moedas}")
-    st.write(f"🗡️ {st.session_state.espada['nome']}")
+    st.write(f"🗡️ Arma: {st.session_state.espada['nome']} ({st.session_state.espada['dano']} dano)")
     st.write(f"🧪 Poções: {st.session_state.pocoes}")
+    
+    st.write("---")
+    st.header("📜 Missões Ativas")
+    if not st.session_state.missoes_ativas:
+        st.write("Nenhuma missão no momento.")
+    else:
+        for nome_npc, dados in st.session_state.missoes_ativas.items():
+            with st.expander(f"📍 {nome_npc}", expanded=True):
+                for monstro, qtd_alvo in dados['a'].items():
+                    prog = dados['p'][monstro]
+                    st.write(f"{monstro}: {prog}/{qtd_alvo}")
+                    st.progress(min(1.0, prog/qtd_alvo))
+                if all(dados['p'][k] >= dados['a'][k] for k in dados['a']):
+                    st.success("Pronta para entregar!")
+
     if st.button("Resetar Jogo"):
         for k in list(st.session_state.keys()): del st.session_state[k]
         st.rerun()
+
+# --- LÓGICA PRINCIPAL ---
+st.title("🐲 Dragões e Espadas")
 
 if st.session_state.vida <= 0:
     st.error("💀 Arthur caiu!")
@@ -84,11 +101,8 @@ elif st.session_state.na_vila:
     with t1:
         st.write("--- ⚔️ Área de Treino ---")
         if st.button("Caçar monstros perto da vila 👾"):
-            # Chance de 1 em 3 conforme pedido
-            if random.randint(1, 3) == 1: 
-                spawn()
-            else: 
-                add_log("Você procurou nos arredores, mas não achou nada.")
+            if random.randint(1, 3) == 1: spawn()
+            else: add_log("Nada encontrado nos arredores.")
             st.rerun()
         
         st.write("--- 👨‍🌾 Missões ---")
@@ -104,7 +118,7 @@ elif st.session_state.na_vila:
         for x in miss:
             if x['i'] not in st.session_state.concluidas:
                 if x['i'] not in st.session_state.missoes_ativas:
-                    if st.button(f"Missão {x['i']}: {x['de']}"):
+                    if st.button(f"Falar com {x['i']}: {x['de']}"):
                         if x['i'] == "REI" and random.randint(1,100) != 1: st.warning("Rei Ocupado")
                         elif x['i'] == "REI": spawn("b"); st.session_state.missoes_ativas[x['i']] = {"a": x['a'], "p": {k:0 for k in x['a']}, "pago": x['p'], "u": True}; st.rerun()
                         else: st.session_state.missoes_ativas[x['i']] = {"a": x['a'], "p": {k:0 for k in x['a']}, "pago": x['p'], "u": False}; st.rerun()
