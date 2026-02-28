@@ -65,7 +65,7 @@ with st.sidebar:
     
     with st.expander("🔐 Painel do Dono"):
         senha = st.text_input("Senha Admin", type="password")
-        if senha == "admin123":
+        if senha == "05062012":
             if st.button("💰 Dinheiro Infinito"): st.session_state.moedas += 99999; st.rerun()
             if st.button("🧪 Kit Poções (99)"): st.session_state.pocoes = 99; st.session_state.pocoes_furia = 99; st.rerun()
             
