@@ -20,7 +20,6 @@ def carregar_save(arquivo):
 if 'nome_heroi' not in st.session_state:
     st.title("🐲 Dragões e Espadas")
     
-    # Adicionado: Opção de carregar save logo no início
     st.subheader("Retornar à Jornada")
     arquivo_save = st.file_uploader("Arraste seu arquivo .json aqui para carregar seu herói:", type=["json"])
     if arquivo_save:
@@ -46,7 +45,6 @@ if 'nome_heroi' not in st.session_state:
             st.rerun()
     st.stop()
 
-# Proteção contra erros de variáveis faltando
 if 'vida_max' not in st.session_state: st.session_state.vida_max = 100
 if 'armadura' not in st.session_state: st.session_state.armadura = {"nome": "Madeira 🪵", "bonus": 0}
 
@@ -82,20 +80,18 @@ with st.sidebar:
             if st.button("💰 Dinheiro Infinito"): st.session_state.moedas += 99999; st.rerun()
             if st.button("🧪 Kit Poções (99)"): st.session_state.pocoes = 99; st.session_state.pocoes_furia = 99; st.rerun()
             
+            # NOVO: Botão de Spawnar Vila
+            if st.button("🏘️ Spawnar Vila Agora"):
+                st.session_state.achou_vila = True; st.rerun()
+
             st.write("⚔️ Escolher Qualquer Arma:")
-            armas_adm = {
-                "Madeira 🪵": 7, "Pedra 🪨": 10, "Ferro ⚔️": 14, "Ouro 👑": 18, 
-                "Cavaleiro 🛡️": 22, "Rei Caído 💀": 50, "CRIADOR ⚡": 9999
-            }
+            armas_adm = {"Madeira 🪵": 7, "Pedra 🪨": 10, "Ferro ⚔️": 14, "Ouro 👑": 18, "Cavaleiro 🛡️": 22, "Rei Caído 💀": 50, "CRIADOR ⚡": 9999}
             sel_arma = st.selectbox("Armas:", list(armas_adm.keys()), key="adm_w")
             if st.button("Equipar Arma Selecionada"):
                 st.session_state.espada = {"nome": sel_arma, "dano": armas_adm[sel_arma]}; st.rerun()
 
             st.write("🛡️ Escolher Qualquer Armadura:")
-            arms_adm = {
-                "Madeira 🪵": 0, "Couro 🪵": 10, "Ferro ⚙️": 25, "Ouro 👑": 50, 
-                "Cavaleiro 🛡️": 75, "Rei Caído 💀": 100, "DEUS DA GUERRA 🛡️": 99999
-            }
+            arms_adm = {"Madeira 🪵": 0, "Couro 🪵": 10, "Ferro ⚙️": 25, "Ouro 👑": 50, "Cavaleiro 🛡️": 75, "Rei Caído 💀": 100, "DEUS DA GUERRA 🛡️": 99999}
             sel_arm = st.selectbox("Armaduras:", list(arms_adm.keys()), key="adm_a")
             if st.button("Equipar Armadura Selecionada"):
                 st.session_state.armadura = {"nome": sel_arm, "bonus": arms_adm[sel_arm]}
@@ -209,14 +205,19 @@ else:
     st.subheader("🗺️ Exploração")
     c1, c2 = st.columns(2)
     if c1.button("Andar 🥾"):
-        sorte = random.randint(1, 100)
-        if sorte == 1 and "REI" in st.session_state.missoes_ativas:
+        # CHANCES ATUALIZADAS CONFORME PEDIDO
+        if random.randint(1, 100) == 1: # 1 em 100
             st.session_state.dungeon_tipo = "COVIL DO REI DRAGÃO 👑"; st.session_state.em_dungeon = True
-        elif sorte <= 10: st.session_state.achou_vila = True
-        elif sorte <= 30: 
-            st.session_state.dungeon_tipo = random.choice(["Gosmas (Fácil)", "Goblins (Médio)", "Dragões (Difícil)"])
-            st.session_state.em_dungeon = True
+        elif random.randint(1, 3) == 1: # 1 em 3
+            st.session_state.achou_vila = True
+        elif random.randint(1, 25) == 1: # 1 em 25
+            st.session_state.dungeon_tipo = "Dragões (Difícil)"; st.session_state.em_dungeon = True
+        elif random.randint(1, 15) == 1: # 1 em 15
+            st.session_state.dungeon_tipo = "Goblins (Médio)"; st.session_state.em_dungeon = True
+        elif random.randint(1, 10) == 1: # 1 em 10
+            st.session_state.dungeon_tipo = "Gosmas (Fácil)"; st.session_state.em_dungeon = True
         st.rerun()
+        
     if c2.button("Lutar 👾"): spawn(); st.rerun()
     
     if st.session_state.em_dungeon:
@@ -224,7 +225,9 @@ else:
         col_d1, col_d2 = st.columns(2)
         if col_d1.button("ENTRAR! ⚔️"):
             if "REI" in st.session_state.dungeon_tipo: spawn("🔥 REI DRAGÃO 🔥")
-            else: spawn()
+            elif "Dragão" in st.session_state.dungeon_tipo: spawn("Dragão 🐲")
+            elif "Goblin" in st.session_state.dungeon_tipo: spawn("Goblin 👺")
+            else: spawn("Gosma 🟢")
             st.rerun()
         if col_d2.button("Ignorar Dungeon"): st.session_state.em_dungeon = False; st.rerun()
 
