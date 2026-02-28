@@ -145,4 +145,57 @@ elif st.session_state.na_vila:
             {"i": "Maria", "de": "3 Goblins", "a": {"Goblin 👺": 3}, "p": 70},
             {"i": "Bram", "de": "5 Gobs e 3 Gosmas", "a": {"Goblin 👺": 5, "Gosma 🟢": 3}, "p": 120},
             {"i": "Elara", "de": "1 Dragão", "a": {"Dragão 🐲": 1}, "p": 150},
-            {"i": "REI", "de": "Derrotar o REI DRAGÃO", "a": {"🔥 REI
+            {"i": "REI", "de": "Derrotar o REI DRAGÃO", "a": {"🔥 REIDRAGÃO 🔥": 1}, "p": 500}
+        ]
+        for x in miss:
+            # Removida a verificação de 'concluidas' para permitir repetição
+            if x['i'] not in st.session_state.missoes_ativas:
+                if st.button(f"Falar com {x['i']}: {x['de']}"):
+                    st.session_state.missoes_ativas[x['i']] = {"a": x['a'], "p": {k:0 for k in x['a']}, "pago": x['p']}
+                    if x['i'] == "REI": spawn(boss=True)
+                    st.rerun()
+            else:
+                at = st.session_state.missoes_ativas[x['i']]
+                if all(at['p'][k] >= at['a'][k] for k in at['a']):
+                    if st.button(f"Entregar para {x['i']} ✅"):
+                        st.session_state.moedas += at['pago']
+                        # A missão é removida das ativas, mas pode ser aceita novamente
+                        del st.session_state.missoes_ativas[x['i']]; st.rerun()
+                else: 
+                    st.info(f"Pendente ({x['i']}): {x['de']}")
+                    if st.button(f"Cancelar Missão de {x['i']} ❌"):
+                        del st.session_state.missoes_ativas[x['i']]; st.rerun()
+
+    with t2:
+        loja = {"Pedra 🪨": (150, 10), "Ferro ⚔️": (250, 14), "Ouro 👑": (400, 18), "Cavaleiro 🛡️": (1000, 22), "Rei Caído 💀": (3500, 50)}
+        for n, (c, d) in loja.items():
+            if st.button(f"{n} ({d} Dano) - {c}💰"):
+                if st.session_state.moedas >= c:
+                    st.session_state.moedas -= c; st.session_state.espada = {"nome": n, "dano": d}; st.rerun()
+    with t3:
+        if st.button("Poção Cura (35💰)"):
+            if st.session_state.moedas >= 35: st.session_state.moedas -= 35; st.session_state.pocoes += 1; st.rerun()
+        if st.button("Poção Fúria (35💰)"):
+            if st.session_state.moedas >= 35: st.session_state.moedas -= 35; st.session_state.pocoes_furia += 1; st.rerun()
+    if st.button("Sair da Vila 🚪"): st.session_state.na_vila = False; st.rerun()
+
+else:
+    st.subheader("🗺️ Exploração")
+    c1, c2 = st.columns(2)
+    if c1.button("Andar 🥾"):
+        sorte = random.randint(1, 100)
+        if random.randint(1, 5) == 1: st.session_state.achou_vila = True
+        elif sorte <= 2: st.session_state.dungeon_tipo = "Dragões (Difícil)"; st.session_state.em_dungeon = True
+        elif sorte <= 6: st.session_state.dungeon_tipo = "Goblins (Médio)"; st.session_state.em_dungeon = True
+        elif sorte <= 16: st.session_state.dungeon_tipo = "Gosmas (Fácil)"; st.session_state.em_dungeon = True
+        st.rerun()
+    if c2.button("Lutar 👾"): spawn(); st.rerun()
+    
+    if st.session_state.achou_vila:
+        st.success("🏘️ Vila avistada!")
+        if st.button("Entrar na Vila 🚪"): st.session_state.na_vila = True; st.session_state.achou_vila = False; st.rerun()
+        if st.button("Ignorar Vila 🚶"): st.session_state.achou_vila = False; st.rerun()
+
+st.write("---")
+for log in reversed(st.session_state.log[-5:]): st.write(log)
+    
