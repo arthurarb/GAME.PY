@@ -1,16 +1,3 @@
-O desafio aumentou! Agora as Dungeons são verdadeiros testes de resistência. Enfrentar 7 monstros em sequência sem poder voltar à vila para comprar suprimentos exige que o Arthur se prepare muito bem antes de entrar.
-
-Ajustei a lógica para que o bônus de moedas (200, 450 ou 800) só seja entregue após a sétima vitória consecutiva.
-
-🏰 O que mudou no código:
-Contador de 0 a 7: O progresso agora vai até 7.
-
-Persistência: O monstro renasce automaticamente após cada vitória dentro da Dungeon até atingir a meta.
-
-Recompensa Acumulada: Ele ganha as moedas normais de cada monstro + o bônus gigante no final.
-
-Python
-
 import streamlit as st
 import random
 
