@@ -1,3 +1,13 @@
+Entendido! Fiz exatamente o que você pediu:
+
+Missões na Sidebar: Agora as missões ativas aparecem logo abaixo das moedas na barra lateral, facilitando o acompanhamento.
+
+Cancelar Missão: Adicionei um botão "Cancelar Missão" ao lado (ou abaixo) de cada missão ativa na lista.
+
+O resto do código (senha, vida infinita, chances de spawn e sistema de save) permanece intacto.
+
+Python
+
 import streamlit as st
 import random
 import json
@@ -69,7 +79,6 @@ with st.sidebar:
     st.write(f"❤️ HP: {st.session_state.vida} / {st.session_state.vida_max}")
     st.progress(max(0.0, min(1.0, st.session_state.vida / st.session_state.vida_max)) if st.session_state.vida_max > 0 else 0.0)
     
-    # MOSTRAR POÇÕES (ADICIONADO)
     st.write(f"🧪 Poções de Cura: {st.session_state.pocoes}")
     st.write(f"⚡ Poções de Fúria: {st.session_state.pocoes_furia}")
     
@@ -77,6 +86,18 @@ with st.sidebar:
     st.write(f"🛡️ Armadura: {st.session_state.armadura['nome']}")
     st.markdown(f"### 💰 {st.session_state.moedas} Moedas")
     
+    # --- MISSÕES NA SIDEBAR (ADICIONADO) ---
+    if st.session_state.missoes_ativas:
+        st.markdown("---")
+        st.subheader("📜 Missões Ativas")
+        for npc, dados in list(st.session_state.missoes_ativas.items()):
+            prog = ", ".join([f"{k}: {dados['p'][k]}/{dados['a'][k]}" for k in dados['a']])
+            st.write(f"**{npc}**: {prog}")
+            if st.button(f"❌ Cancelar {npc}", key=f"can_{npc}"):
+                del st.session_state.missoes_ativas[npc]
+                st.rerun()
+    st.markdown("---")
+
     st.download_button("💾 SALVAR JOGO", data=export_save(), file_name="save_dragao.json")
     
     with st.expander("🔐 Painel do Dono"):
@@ -85,7 +106,6 @@ with st.sidebar:
             if st.button("💰 Dinheiro Infinito"): st.session_state.moedas += 99999; st.rerun()
             if st.button("🧪 Kit Poções (99)"): st.session_state.pocoes = 99; st.session_state.pocoes_furia = 99; st.rerun()
             
-            # VIDA INFINITA ADM (ADICIONADO)
             if st.button("❤️ VIDA INFINITA"):
                 st.session_state.vida_max = 9999999
                 st.session_state.vida = 9999999
@@ -181,8 +201,10 @@ elif st.session_state.na_vila:
                 prog = ", ".join([f"{k}: {at['p'][k]}/{at['a'][k]}" for k in at['a']])
                 st.write(f"📌 {x['i']}: {prog}")
                 if all(at['p'][k] >= at['a'][k] for k in at['a']):
-                    if st.button(f"Entregar para {x['i']} ✅"):
+                    if st.button(f"Entregar para {x['i']} ✅", key=f"ent_{x['i']}"):
                         st.session_state.moedas += at['pago']; del st.session_state.missoes_ativas[x['i']]; st.rerun()
+                elif st.button(f"Cancelar {x['i']}", key=f"can_vila_{x['i']}"):
+                    del st.session_state.missoes_ativas[x['i']]; st.rerun()
 
     with t2:
         loja_w = {"Pedra 🪨": (150, 10), "Ferro ⚔️": (250, 14), "Ouro 👑": (400, 18), "Cavaleiro 🛡️": (1000, 22), "Rei Caído 💀": (3500, 50)}
