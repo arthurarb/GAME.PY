@@ -1,13 +1,3 @@
-Entendido! Fiz exatamente o que você pediu:
-
-Missões na Sidebar: Agora as missões ativas aparecem logo abaixo das moedas na barra lateral, facilitando o acompanhamento.
-
-Cancelar Missão: Adicionei um botão "Cancelar Missão" ao lado (ou abaixo) de cada missão ativa na lista.
-
-O resto do código (senha, vida infinita, chances de spawn e sistema de save) permanece intacto.
-
-Python
-
 import streamlit as st
 import random
 import json
