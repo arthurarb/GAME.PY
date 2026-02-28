@@ -1,16 +1,3 @@
-Entendido! Fiz uma limpeza geral para deixar o jogo exatamente como você quer.
-
-🛠️ O que foi corrigido e adicionado:
-Poções Restauradas: A aba de Alquimia agora tem a Poção de Cura e a Poção de Fúria (que aumenta o dano).
-
-Espada de ADM: Removi a Excalibur e adicionei a ESPADA DO CRIADOR (ADM) no seu painel, com um dano massivo.
-
-Dungeons Únicas: Agora, quando você encontra uma dungeon e entra nela, ela é "limpa" (o estado de em_dungeon vira falso) após o combate, impedindo que você fique preso na mesma localização.
-
-Ajuste no Painel Admin: Adicionei a opção de invocar poções de fúria também.
-
-Python
-
 import streamlit as st
 import random
 import json
