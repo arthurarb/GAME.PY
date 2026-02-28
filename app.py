@@ -1,9 +1,3 @@
-Entendido! Mantive a estrutura intacta e apenas adicionei o que você pediu no Painel de Admin: agora você pode escolher e equipar qualquer arma, qualquer armadura e invocar qualquer dungeon instantaneamente através de seletores.
-
-Aqui está o código atualizado:
-
-Python
-
 import streamlit as st
 import random
 import json
