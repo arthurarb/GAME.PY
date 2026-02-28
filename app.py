@@ -66,6 +66,7 @@ elif st.session_state.em_combate:
             for n, i in st.session_state.missoes_ativas.items():
                 if m['n'] in i['p']: i['p'][m['n']] = min(i['a'][m['n']], i['p'][m['n']] + 1)
             st.session_state.em_combate = False
+            add_log(f"Vitória! Ganhou {m['o']} moedas.")
         else:
             st.session_state.vida -= m['d']
         st.rerun()
@@ -79,8 +80,18 @@ elif st.session_state.em_combate:
 
 elif st.session_state.na_vila:
     st.subheader("🏘️ Vila")
-    t1, t2, t3 = st.tabs(["Aldeões", "Ferreiro", "Poções"])
+    t1, t2, t3 = st.tabs(["Aldeões & Caça", "Ferreiro", "Poções"])
     with t1:
+        st.write("--- ⚔️ Área de Treino ---")
+        if st.button("Caçar monstros perto da vila 👾"):
+            # Chance de 1 em 3 conforme pedido
+            if random.randint(1, 3) == 1: 
+                spawn()
+            else: 
+                add_log("Você procurou nos arredores, mas não achou nada.")
+            st.rerun()
+        
+        st.write("--- 👨‍🌾 Missões ---")
         miss = [
             {"i": "Joshua", "de": "2 Goblins", "a": {"Goblin 👺": 2}, "p": 10, "u": False},
             {"i": "Silas", "de": "5 Goblins", "a": {"Goblin 👺": 5}, "p": 20, "u": False},
@@ -114,7 +125,7 @@ elif st.session_state.na_vila:
     with t3:
         if st.button("Poção (35 💰)"):
             if st.session_state.moedas >= 35: st.session_state.moedas -= 35; st.session_state.pocoes += 1; st.rerun()
-    if st.button("Sair 🚪"):
+    if st.button("Sair da Vila 🚪"):
         st.session_state.na_vila = False; st.rerun()
 else:
     st.subheader("🗺️ Exploração")
