@@ -3,7 +3,7 @@ import random
 import json
 
 # --- SETUP ---
-st.set_page_config(page_title="Dragões e Espadas", page_icon="🐲", layout="wide")
+st.set_page_config(page_title="Dragões e Espadas - ADMIN", page_icon="🐲", layout="wide")
 
 # --- SISTEMA DE SAVE/LOAD ---
 def export_save():
@@ -54,7 +54,7 @@ def spawn(tipo_nome=None, boss=False):
     else: st.session_state.monstro = random.choice(list(m_data.values())).copy()
     st.session_state.em_combate = True
 
-# --- SIDEBAR ---
+# --- SIDEBAR E PAINEL ADMIN ---
 with st.sidebar:
     st.header(f"👤 {st.session_state.nome_heroi}")
     st.write(f"❤️ HP: {st.session_state.vida}/100")
@@ -62,6 +62,33 @@ with st.sidebar:
     st.markdown(f"<div style='background-color:#FFD700;padding:10px;border-radius:10px;text-align:center;border:2px solid #B8860B;'><span style='color:#000;font-weight:bold;font-size:20px;'>💰 {st.session_state.moedas} Moedas</span></div>", unsafe_allow_html=True)
     st.write(f"🗡️ {st.session_state.espada['nome']} ({st.session_state.espada['dano']} dano)")
     st.write(f"🧪 Cura: {st.session_state.pocoes} | ⚡ Fúria: {st.session_state.pocoes_furia}")
+    
+    st.write("---")
+    # --- ÁREA DO DONO ---
+    with st.expander("🔐 Acesso Admin"):
+        senha = st.text_input("Senha Admin", type="password")
+        if senha == "admin123":  # <--- VOCÊ PODE MUDAR A SENHA AQUI
+            st.success("Painel do Dono Ativo")
+            if st.button("💰 +9999 Moedas"): 
+                st.session_state.moedas += 9999; st.rerun()
+            if st.button("❤️ HP Infinito (999)"): 
+                st.session_state.vida = 999; st.rerun()
+            if st.button("🧪 99 Poções"): 
+                st.session_state.pocoes = 99; st.session_state.pocoes_furia = 99; st.rerun()
+            
+            st.write("🗡️ Pegar Espada:")
+            espada_adm = st.selectbox("Escolha:", ["Cavaleiro 🛡️", "Rei Caído 💀"])
+            if st.button("Equipar"):
+                if "Cavaleiro" in espada_adm: st.session_state.espada = {"nome": "Cavaleiro 🛡️", "dano": 22}
+                else: st.session_state.espada = {"nome": "Rei Caído 💀", "dano": 50}
+                st.rerun()
+            
+            st.write("👾 Invocar Monstro:")
+            monst_adm = st.selectbox("Escolha:", ["Gosma 🟢", "Goblin 👺", "Dragão 🐲", "REI DRAGÃO"])
+            if st.button("Spawn Agora"):
+                if monst_adm == "REI DRAGÃO": spawn(boss=True)
+                else: spawn(monst_adm)
+                st.rerun()
     
     st.write("---")
     st.download_button("💾 SALVAR JOGO", data=export_save(), file_name=f"save_{st.session_state.nome_heroi}.json")
@@ -74,18 +101,10 @@ st.title("🐲 Dragões e Espadas")
 
 if st.session_state.vida <= 0:
     st.error("💀 DERROTADO!")
-    # REGRA NOVA: Renasce com 25 de vida
     if st.button("Pagar Resgate (50 💰) e Renascer (25 HP)"):
         if st.session_state.moedas >= 50:
-            st.session_state.moedas -= 50
-            st.session_state.vida = 25 
-            st.session_state.em_combate = False
-            add_log("Você foi resgatado, mas está muito fraco...")
-            st.rerun()
-        else:
-            st.warning("Você não tem moedas suficientes para o resgate!")
-    
-    if st.button("Novo Jogo (Resetar)"):
+            st.session_state.moedas -= 50; st.session_state.vida = 25; st.session_state.em_combate = False; st.rerun()
+    if st.button("Novo Jogo"):
         for k in list(st.session_state.keys()): del st.session_state[k]
         st.rerun()
 
@@ -106,24 +125,13 @@ elif st.session_state.em_combate:
             st.session_state.moedas += m['o']
             for npc, dados in st.session_state.missoes_ativas.items():
                 if m['n'] in dados['p']: dados['p'][m['n']] = min(dados['a'][m['n']], dados['p'][m['n']] + 1)
-            
-            if st.session_state.em_dungeon:
-                st.session_state.dungeon_progresso += 1
-                if st.session_state.dungeon_progresso >= 7:
-                    recs = {"Gosmas (Fácil)": 200, "Goblins (Médio)": 450, "Dragões (Difícil)": 800}
-                    st.session_state.moedas += recs.get(st.session_state.dungeon_tipo, 0)
-                    st.session_state.em_dungeon = False; st.session_state.em_combate = False
-                else: spawn(m['n'])
-            else: st.session_state.em_combate = False
-            st.rerun()
+            st.session_state.em_combate = False; st.rerun()
         else: st.session_state.vida -= m['d']; st.rerun()
-        
     if b2.button("Cura 🧪") and st.session_state.pocoes > 0:
-        st.session_state.vida = min(100, st.session_state.vida + 40); st.session_state.pocoes -= 1; st.rerun()
+        st.session_state.vida = min(999, st.session_state.vida + 40); st.session_state.pocoes -= 1; st.rerun()
     if b3.button("Fúria ⚡") and st.session_state.pocoes_furia > 0:
         st.session_state.furia_rodadas = 3; st.session_state.pocoes_furia -= 1; st.rerun()
     if b4.button("FUGIR 🏃"):
-        if st.session_state.em_dungeon: st.session_state.em_dungeon = False
         st.session_state.em_combate = False; st.rerun()
 
 elif st.session_state.na_vila:
@@ -178,21 +186,10 @@ else:
         st.rerun()
     if c2.button("Lutar 👾"): spawn(); st.rerun()
     
-    if st.session_state.em_dungeon:
-        st.warning(f"🏰 {st.session_state.dungeon_tipo}")
-        if st.button("ENTRAR (7 Monstros)"):
-            st.session_state.dungeon_progresso = 0
-            tp = "Gosma 🟢" if "Gosma" in st.session_state.dungeon_tipo else "Goblin 👺" if "Goblin" in st.session_state.dungeon_tipo else "Dragão 🐲"
-            spawn(tp); st.rerun()
-        if st.button("Ignorar Dungeon"): st.session_state.em_dungeon = False; st.rerun()
-        
     if st.session_state.achou_vila:
         st.success("🏘️ Vila avistada!")
-        col_v1, col_v2 = st.columns(2)
-        if col_v1.button("Entrar na Vila 🚪"):
-            st.session_state.na_vila = True; st.session_state.achou_vila = False; st.rerun()
-        if col_v2.button("Ignorar Vila 🚶"):
-            st.session_state.achou_vila = False; st.rerun()
+        if st.button("Entrar na Vila 🚪"): st.session_state.na_vila = True; st.session_state.achou_vila = False; st.rerun()
+        if st.button("Ignorar Vila 🚶"): st.session_state.achou_vila = False; st.rerun()
 
 st.write("---")
 for log in reversed(st.session_state.log[-5:]): st.write(log)
