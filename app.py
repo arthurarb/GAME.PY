@@ -44,7 +44,6 @@ if 'nome_heroi' not in st.session_state:
 def add_log(txt): st.session_state.log.append(txt)
 
 def spawn(tipo_nome=None, boss=False):
-    # Valores de moedas atualizados conforme seu pedido
     m_data = {
         "Gosma 🟢": {"n": "Gosma 🟢", "v": 30, "d": 4, "o": 5},
         "Goblin 👺": {"n": "Goblin 👺", "v": 50, "d": 9, "o": 10},
@@ -173,10 +172,19 @@ else:
             st.session_state.dungeon_progresso = 0
             tp = "Gosma 🟢" if "Gosma" in st.session_state.dungeon_tipo else "Goblin 👺" if "Goblin" in st.session_state.dungeon_tipo else "Dragão 🐲"
             spawn(tp); st.rerun()
-        if st.button("Ignorar"): st.session_state.em_dungeon = False; st.rerun()
+        if st.button("Ignorar Dungeon"): st.session_state.em_dungeon = False; st.rerun()
+        
     if st.session_state.achou_vila:
-        st.success("🏘️ Vila avistada!"); 
-        if st.button("Entrar"): st.session_state.na_vila = True; st.session_state.achou_vila = False; st.rerun()
+        st.success("🏘️ Vila avistada!")
+        col_v1, col_v2 = st.columns(2)
+        if col_v1.button("Entrar na Vila 🚪"):
+            st.session_state.na_vila = True
+            st.session_state.achou_vila = False
+            st.rerun()
+        if col_v2.button("Ignorar Vila 🚶"):
+            st.session_state.achou_vila = False
+            add_log("Você decidiu não parar na vila desta vez.")
+            st.rerun()
 
 st.write("---")
 for log in reversed(st.session_state.log[-5:]): st.write(log)
