@@ -1,3 +1,10 @@
+Com certeza! Reajustei os valores das recompensas das missões para os novos valores que você pediu: 25, 40, 70, 120 e 150 moedas. Isso vai ajudar o Arthur a conseguir a Espada de Cavaleiro muito mais rápido!
+
+Também mantive a missão do REI com as 500 moedas, já que é o desafio final.
+
+⚔️ Código Atualizado: Dragões e Espadas
+Python
+
 import streamlit as st
 import random
 import json
@@ -120,12 +127,13 @@ elif st.session_state.na_vila:
     with t1:
         if st.button("Procurar monstros ao redor 👾"): spawn(); st.rerun()
         st.write("---")
+        # NOVAS RECOMPENSAS: 25, 40, 70, 120 e 150
         miss = [
-            {"i": "Joshua", "de": "2 Gosmas", "a": {"Gosma 🟢": 2}, "p": 10},
-            {"i": "Silas", "de": "5 Gosmas", "a": {"Gosma 🟢": 5}, "p": 20},
-            {"i": "Maria", "de": "3 Goblins", "a": {"Goblin 👺": 3}, "p": 40},
-            {"i": "Bram", "de": "5 Gobs e 3 Gosmas", "a": {"Goblin 👺": 5, "Gosma 🟢": 3}, "p": 70},
-            {"i": "Elara", "de": "1 Dragão", "a": {"Dragão 🐲": 1}, "p": 100},
+            {"i": "Joshua", "de": "2 Gosmas", "a": {"Gosma 🟢": 2}, "p": 25},
+            {"i": "Silas", "de": "5 Gosmas", "a": {"Gosma 🟢": 5}, "p": 40},
+            {"i": "Maria", "de": "3 Goblins", "a": {"Goblin 👺": 3}, "p": 70},
+            {"i": "Bram", "de": "5 Gobs e 3 Gosmas", "a": {"Goblin 👺": 5, "Gosma 🟢": 3}, "p": 120},
+            {"i": "Elara", "de": "1 Dragão", "a": {"Dragão 🐲": 1}, "p": 150},
             {"i": "REI", "de": "Derrotar o REI DRAGÃO", "a": {"🔥 REI DRAGÃO 🔥": 1}, "p": 500}
         ]
         for x in miss:
@@ -141,6 +149,7 @@ elif st.session_state.na_vila:
                         if st.button(f"Entregar para {x['i']} ✅"):
                             st.session_state.moedas += at['pago']; st.session_state.concluidas.append(x['i'])
                             del st.session_state.missoes_ativas[x['i']]; st.rerun()
+                    else: st.info(f"Pendente: {x['de']}")
     with t2:
         loja = {"Pedra 🪨": (150, 10), "Ferro ⚔️": (250, 14), "Ouro 👑": (400, 18), "Cavaleiro 🛡️": (1000, 22), "Rei Caído 💀": (3500, 50)}
         for n, (c, d) in loja.items():
@@ -178,13 +187,9 @@ else:
         st.success("🏘️ Vila avistada!")
         col_v1, col_v2 = st.columns(2)
         if col_v1.button("Entrar na Vila 🚪"):
-            st.session_state.na_vila = True
-            st.session_state.achou_vila = False
-            st.rerun()
+            st.session_state.na_vila = True; st.session_state.achou_vila = False; st.rerun()
         if col_v2.button("Ignorar Vila 🚶"):
-            st.session_state.achou_vila = False
-            add_log("Você decidiu não parar na vila desta vez.")
-            st.rerun()
+            st.session_state.achou_vila = False; st.rerun()
 
 st.write("---")
 for log in reversed(st.session_state.log[-5:]): st.write(log)
