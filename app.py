@@ -1,10 +1,3 @@
-Entendido! Fiz a alteração para que o Arthur nunca mais tenha turnos "vazios". Agora, sempre que ele clicar em Lutar 👾 ou Caçar monstros perto da vila 👾, um monstro aparecerá instantaneamente (100% de chance).
-
-Além disso, mantive a trava de segurança para evitar aquele erro de AttributeError caso você ainda esteja com um jogo salvo antigo.
-
-⚔️ Código Atualizado (100% de Encontro)
-Python
-
 import streamlit as st
 import random
 
