@@ -44,10 +44,11 @@ if 'nome_heroi' not in st.session_state:
 def add_log(txt): st.session_state.log.append(txt)
 
 def spawn(tipo_nome=None, boss=False):
+    # Valores de moedas atualizados conforme seu pedido
     m_data = {
-        "Gosma 🟢": {"n": "Gosma 🟢", "v": 30, "d": 4, "o": 15},
-        "Goblin 👺": {"n": "Goblin 👺", "v": 50, "d": 9, "o": 30},
-        "Dragão 🐲": {"n": "Dragão 🐲", "v": 80, "d": 15, "o": 60}
+        "Gosma 🟢": {"n": "Gosma 🟢", "v": 30, "d": 4, "o": 5},
+        "Goblin 👺": {"n": "Goblin 👺", "v": 50, "d": 9, "o": 10},
+        "Dragão 🐲": {"n": "Dragão 🐲", "v": 80, "d": 15, "o": 30}
     }
     if boss: st.session_state.monstro = {"n": "🔥 REI DRAGÃO 🔥", "v": 500, "d": 17, "o": 500}
     elif tipo_nome: st.session_state.monstro = m_data[tipo_nome].copy()
@@ -86,7 +87,7 @@ elif st.session_state.em_combate:
     col1.metric("HP Inimigo", m['v'])
     col2.metric("Seu HP", st.session_state.vida)
     
-    b1, b2, b3 = st.columns(3)
+    b1, b2, b3, b4 = st.columns(4)
     if b1.button("ATACAR!"):
         m['v'] -= d_at
         if st.session_state.furia_rodadas > 0: st.session_state.furia_rodadas -= 1
@@ -105,20 +106,20 @@ elif st.session_state.em_combate:
             else: st.session_state.em_combate = False
             st.rerun()
         else: st.session_state.vida -= m['d']; st.rerun()
+        
     if b2.button("Cura 🧪") and st.session_state.pocoes > 0:
         st.session_state.vida = min(100, st.session_state.vida + 40); st.session_state.pocoes -= 1; st.rerun()
     if b3.button("Fúria ⚡") and st.session_state.pocoes_furia > 0:
         st.session_state.furia_rodadas = 3; st.session_state.pocoes_furia -= 1; st.rerun()
+    if b4.button("FUGIR 🏃"):
+        if st.session_state.em_dungeon: st.session_state.em_dungeon = False
+        st.session_state.em_combate = False; st.rerun()
 
 elif st.session_state.na_vila:
     st.subheader("🏘️ Vila")
     t1, t2, t3 = st.tabs(["📜 Missões", "⚒️ Ferreiro", "🧪 Alquimia"])
     with t1:
-        # BOTÃO SOLICITADO: Procurar monstros na vila
-        if st.button("Procurar monstros ao redor 👾"):
-            spawn()
-            st.rerun()
-        
+        if st.button("Procurar monstros ao redor 👾"): spawn(); st.rerun()
         st.write("---")
         miss = [
             {"i": "Joshua", "de": "2 Gosmas", "a": {"Gosma 🟢": 2}, "p": 10},
@@ -141,7 +142,6 @@ elif st.session_state.na_vila:
                         if st.button(f"Entregar para {x['i']} ✅"):
                             st.session_state.moedas += at['pago']; st.session_state.concluidas.append(x['i'])
                             del st.session_state.missoes_ativas[x['i']]; st.rerun()
-                    else: st.info(f"Pendente: {x['de']}")
     with t2:
         loja = {"Pedra 🪨": (150, 10), "Ferro ⚔️": (250, 14), "Ouro 👑": (400, 18), "Cavaleiro 🛡️": (1000, 22), "Rei Caído 💀": (3500, 50)}
         for n, (c, d) in loja.items():
@@ -164,7 +164,6 @@ else:
         elif sorte <= 2: st.session_state.dungeon_tipo = "Dragões (Difícil)"; st.session_state.em_dungeon = True
         elif sorte <= 6: st.session_state.dungeon_tipo = "Goblins (Médio)"; st.session_state.em_dungeon = True
         elif sorte <= 16: st.session_state.dungeon_tipo = "Gosmas (Fácil)"; st.session_state.em_dungeon = True
-        else: add_log("Caminhando...")
         st.rerun()
     if c2.button("Lutar 👾"): spawn(); st.rerun()
     
