@@ -3,7 +3,7 @@ import random
 import json
 
 # --- SETUP ---
-st.set_page_config(page_title="Dragões e Espadas - ADMIN", page_icon="🐲", layout="wide")
+st.set_page_config(page_title="Dragões e Espadas - COMPLETO", page_icon="🐲", layout="wide")
 
 # --- SISTEMA DE SAVE/LOAD ---
 def export_save():
@@ -62,6 +62,7 @@ with st.sidebar:
         if senha == "admin123":
             if st.button("💰 Dinheiro Infinito"): st.session_state.moedas += 99999; st.rerun()
             if st.button("❤️ HP Imortal"): st.session_state.vida = 9999; st.rerun()
+            if st.button("🧪 +99 Poções"): st.session_state.pocoes += 99; st.rerun()
             
             st.write("⚔️ Arsenal Completo:")
             todas_espadas = {
@@ -77,9 +78,7 @@ with st.sidebar:
             dungeons_lista = ["Gosmas (Fácil)", "Goblins (Médio)", "Dragões (Difícil)", "COVIL DO REI DRAGÃO 👑"]
             esc_dung = st.selectbox("Escolher Dungeon:", dungeons_lista)
             if st.button("Forçar Dungeon"):
-                st.session_state.dungeon_tipo = esc_dung
-                st.session_state.em_dungeon = True
-                st.rerun()
+                st.session_state.dungeon_tipo = esc_dung; st.session_state.em_dungeon = True; st.rerun()
 
     st.download_button("💾 SALVAR", data=export_save(), file_name="save.json")
     if st.button("🔄 Reset"):
@@ -106,16 +105,14 @@ elif st.session_state.em_combate:
         m['v'] -= d_at
         if m['v'] <= 0:
             st.session_state.moedas += m['o']
-            # Atualiza missões
+            # Atualiza TODAS as missões ativas conforme o monstro morto
             for npc, dados in st.session_state.missoes_ativas.items():
                 if m['n'] in dados['p']: 
                     dados['p'][m['n']] = min(dados['a'][m['n']], dados['p'][m['n']] + 1)
             
-            # Se matou o Rei Dragão
             if m['n'] == "🔥 REI DRAGÃO 🔥":
-                add_log("VOCÊ MATOU O REI DRAGÃO! Volte à vila para falar com o Rei.")
-                st.session_state.em_dungeon = False
-
+                add_log("VOCÊ MATOU O REI DRAGÃO! Volte à vila.")
+            
             st.session_state.em_combate = False; st.rerun()
         else:
             st.session_state.vida -= m['d']; st.rerun()
@@ -127,10 +124,14 @@ elif st.session_state.na_vila:
     st.subheader("🏘️ Vila Real")
     t1, t2, t3 = st.tabs(["📜 Missões", "⚒️ Ferreiro", "🧪 Alquimia"])
     with t1:
+        # LISTA COMPLETA DE MISSÕES RESTAURADA
         miss = [
             {"i": "Joshua", "de": "2 Gosmas", "a": {"Gosma 🟢": 2}, "p": 25},
+            {"i": "Silas", "de": "5 Gosmas", "a": {"Gosma 🟢": 5}, "p": 40},
+            {"i": "Maria", "de": "3 Goblins", "a": {"Goblin 👺": 3}, "p": 70},
             {"i": "Bram", "de": "5 Gobs e 3 Gosmas", "a": {"Goblin 👺": 5, "Gosma 🟢": 3}, "p": 120},
-            {"i": "REI", "de": "Encontre e mate o REI DRAGÃO no mundo", "a": {"🔥 REI DRAGÃO 🔥": 1}, "p": 500}
+            {"i": "Elara", "de": "1 Dragão", "a": {"Dragão 🐲": 1}, "p": 150},
+            {"i": "REI", "de": "Encontre o REI DRAGÃO no mapa (1% chance ao andar)", "a": {"🔥 REI DRAGÃO 🔥": 1}, "p": 500}
         ]
         for x in miss:
             if x['i'] not in st.session_state.missoes_ativas:
@@ -139,12 +140,26 @@ elif st.session_state.na_vila:
                     st.rerun()
             else:
                 at = st.session_state.missoes_ativas[x['i']]
+                # Verifica progresso
+                progresso_txt = ", ".join([f"{k}: {at['p'][k]}/{at['a'][k]}" for k in at['a']])
+                st.write(f"📌 **{x['i']}**: {progresso_txt}")
+                
                 if all(at['p'][k] >= at['a'][k] for k in at['a']):
-                    if st.button(f"ENTREGAR MISSÃO PARA {x['i']} ✅"):
+                    if st.button(f"ENTREGAR PARA {x['i']} ✅"):
                         st.session_state.moedas += at['pago']
                         del st.session_state.missoes_ativas[x['i']]; st.rerun()
                 else:
-                    st.info(f"Em progresso: {x['de']}")
+                    if st.button(f"Cancelar {x['i']} ❌"):
+                        del st.session_state.missoes_ativas[x['i']]; st.rerun()
+    with t2:
+        loja = {"Pedra 🪨": (150, 10), "Ferro ⚔️": (250, 14), "Ouro 👑": (400, 18), "Cavaleiro 🛡️": (1000, 22), "Rei Caído 💀": (3500, 50)}
+        for n, (c, d) in loja.items():
+            if st.button(f"{n} ({d} Dano) - {c}💰"):
+                if st.session_state.moedas >= c:
+                    st.session_state.moedas -= c; st.session_state.espada = {"nome": n, "dano": d}; st.rerun()
+    with t3:
+        if st.button("Poção Cura (35💰)"):
+            if st.session_state.moedas >= 35: st.session_state.moedas -= 35; st.session_state.pocoes += 1; st.rerun()
 
     if st.button("Sair da Vila 🚪"): st.session_state.na_vila = False; st.rerun()
 
@@ -154,13 +169,12 @@ else:
     c1, c2 = st.columns(2)
     if c1.button("Andar 🥾"):
         sorte = random.randint(1, 100)
-        # 1% de chance para o Covil do Rei Dragão se a missão estiver ativa
+        # 1% de chance para o Rei se tiver a missão
         if sorte == 1 and "REI" in st.session_state.missoes_ativas:
-            st.session_state.dungeon_tipo = "COVIL DO REI DRAGÃO 👑"
-            st.session_state.em_dungeon = True
-        elif sorte <= 5: st.session_state.achou_vila = True
-        elif sorte <= 15: 
-            st.session_state.dungeon_tipo = random.choice(["Gosmas (Fácil)", "Goblins (Médio)"])
+            st.session_state.dungeon_tipo = "COVIL DO REI DRAGÃO 👑"; st.session_state.em_dungeon = True
+        elif sorte <= 8: st.session_state.achou_vila = True
+        elif sorte <= 20: 
+            st.session_state.dungeon_tipo = random.choice(["Gosmas (Fácil)", "Goblins (Médio)", "Dragões (Difícil)"])
             st.session_state.em_dungeon = True
         st.rerun()
     
@@ -168,11 +182,13 @@ else:
     
     if st.session_state.em_dungeon:
         st.warning(f"📍 VOCÊ ACHOU: {st.session_state.dungeon_tipo}")
-        if st.button("ENTRAR PARA LUTAR! ⚔️"):
+        if st.button("ENTRAR! ⚔️"):
             if "REI" in st.session_state.dungeon_tipo: spawn(boss=True)
-            else: spawn() # Dungeon normal
+            elif "Gosma" in st.session_state.dungeon_tipo: spawn("Gosma 🟢")
+            elif "Goblin" in st.session_state.dungeon_tipo: spawn("Goblin 👺")
+            else: spawn("Dragão 🐲")
             st.rerun()
-        if st.button("Ignorar Dungeon"): st.session_state.em_dungeon = False; st.rerun()
+        if st.button("Ignorar"): st.session_state.em_dungeon = False; st.rerun()
 
     if st.session_state.achou_vila:
         st.success("🏘️ Vila avistada!")
