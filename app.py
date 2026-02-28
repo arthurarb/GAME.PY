@@ -1,9 +1,3 @@
-Entendi perfeitamente! Você quer o botão de Carregar Save (upload de arquivo) logo na tela inicial, para poder continuar sua jornada antes mesmo de digitar o nome.
-
-Mantive todo o código anterior intacto e apenas adicionei o campo de upload de arquivo na tela de entrada.
-
-Python
-
 import streamlit as st
 import random
 import json
