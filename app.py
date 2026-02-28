@@ -1,59 +1,48 @@
 import streamlit as st
-import random
 
-# Configuração da página
-st.set_page_config(page_title="Arthur's World", layout="wide")
+# 1. Configuração de Estilo (Deixa a tela mais larga)
+st.set_page_config(layout="wide")
 
-# Inicializar o estado do jogo
-if 'pos_x' not in st.session_state:
-    st.session_state.pos_x = 5
-    st.session_state.pos_y = 5
-    st.session_state.inventario = {"Madeira": 0, "Pedra": 0}
-    st.session_state.log = ["Bem-vindo ao mundo aberto!"]
+# 2. Inicialização do Jogador
+if 'local' not in st.session_state:
+    st.session_state.local = "Vila Inicial"
+    st.session_state.hp = 100
 
-st.title("🌳 Arthur's Open World")
+st.title(f"🏰 Aventura do Arthur: {st.session_state.local}")
 
-# Sidebar para o Inventário
-st.sidebar.header("🎒 Inventário")
-for item, qtd in st.session_state.inventario.items():
-    st.sidebar.write(f"{item}: {qtd}")
+# 3. Layout em Colunas (Interface de App)
+col_img, col_status = st.columns([2, 1])
 
-# Área Principal - O que o jogador vê
-col1, col2 = st.columns([2, 1])
+with col_img:
+    # Aqui você coloca a imagem do cenário ou do personagem
+    # Se você tiver a imagem no GitHub, o caminho seria "assets/cenario.jpg"
+    st.image("https://via.placeholder.com/600x300.png?text=Imagem+do+Cenario", 
+             caption="Você está explorando as terras desconhecidas")
 
-with col1:
-    st.subheader(f"Localização Atual: ({st.session_state.pos_x}, {st.session_state.pos_y})")
+with col_status:
+    st.subheader("📊 Status do Herói")
+    st.progress(st.session_state.hp / 100) # Barra de vida visual
+    st.write(f"❤️ Vida: {st.session_state.hp}")
     
-    # Simulação de bioma baseada em sorte
-    bioma = "Floresta" if (st.session_state.pos_x + st.session_state.pos_y) % 2 == 0 else "Caverna"
-    st.info(f"Você está em uma **{bioma}**.")
+    st.subheader("🎒 Mochila")
+    st.write("⚔️ Espada de Madeira")
 
-    # Controles de Movimento
-    st.write("### Para onde ir?")
-    c1, c2, c3 = st.columns(3)
-    with c2:
-        if st.button("⬆️ Norte"): st.session_state.pos_y += 1
-    with c1:
-        if st.button("⬅️ Oeste"): st.session_state.pos_x -= 1
-    with c3:
-        if st.button("➡️ Leste"): st.session_state.pos_x += 1
-    with c2:
-        if st.button("⬇️ Sul"): st.session_state.pos_y -= 1
-
-with col2:
-    st.subheader("⛏️ Ações")
-    if bioma == "Floresta":
-        if st.button("Cortar Árvore"):
-            st.session_state.inventario["Madeira"] += 1
-            st.session_state.log.append("+1 Madeira coletada!")
-    else:
-        if st.button("Minar Pedra"):
-            st.session_state.inventario["Pedra"] += 1
-            st.session_state.log.append("+1 Pedra coletada!")
-
-# Log de Aventuras
+# 4. Botões de Interface (O "Controle")
 st.write("---")
-st.subheader("📜 Diário de Bordo")
-for entrada in reversed(st.session_state.log[-5:]):
-    st.write(entrada)
-    
+st.subheader("O que você deseja fazer?")
+c1, c2, c3 = st.columns(3)
+
+with c1:
+    if st.button("Ir para a Floresta"):
+        st.session_state.local = "Floresta Sombria"
+        st.rerun()
+
+with c2:
+    if st.button("Descansar (Recuperar Vida)"):
+        st.session_state.hp = min(100, st.session_state.hp + 10)
+        st.success("Você descansou!")
+
+with c3:
+    if st.button("Falar com o Velho Sábio"):
+        st.info("O Sábio diz: 'O Streamlit é poderoso para RPGs!'")
+        
