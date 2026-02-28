@@ -111,3 +111,25 @@ elif st.session_state.na_vila:
             if st.button(f"{n} ({i['d']} Dano) - {i['c']}💰"):
                 if st.session_state.moedas >= i['c']:
                     st.session_state.moedas -= i['c']; st.session_state.espada = {"nome": n, "dano": i['d']}; st.rerun()
+    with t3:
+        if st.button("Poção (35 💰)"):
+            if st.session_state.moedas >= 35: st.session_state.moedas -= 35; st.session_state.pocoes += 1; st.rerun()
+    if st.button("Sair 🚪"):
+        st.session_state.na_vila = False; st.rerun()
+else:
+    st.subheader("🗺️ Exploração")
+    colA, colB = st.columns(2)
+    if colA.button("Andar 🥾"):
+        if random.randint(1, 5) == 1: st.session_state.achou_vila = True
+        else: add_log("Nada aqui.")
+        st.rerun()
+    if colB.button("Lutar 👾"):
+        if random.randint(1, 3) == 1: spawn()
+        else: add_log("Área limpa.")
+        st.rerun()
+    if st.session_state.achou_vila:
+        st.success("🏘️ Vila à vista!")
+        if st.button("Entrar"): st.session_state.na_vila = True; st.session_state.achou_vila = False; st.rerun()
+        if st.button("Ignorar"): st.session_state.achou_vila = False; st.rerun()
+st.write("---")
+for m in reversed(st.session_state.log[-5:]): st.write(m)
