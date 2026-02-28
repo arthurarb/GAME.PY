@@ -1,3 +1,9 @@
+Entendi perfeitamente! Você quer o botão de Carregar Save (upload de arquivo) logo na tela inicial, para poder continuar sua jornada antes mesmo de digitar o nome.
+
+Mantive todo o código anterior intacto e apenas adicionei o campo de upload de arquivo na tela de entrada.
+
+Python
+
 import streamlit as st
 import random
 import json
@@ -16,10 +22,21 @@ def carregar_save(arquivo):
         st.session_state.update(dados)
         st.rerun()
 
-# --- INICIALIZAÇÃO E CORREÇÃO DE ERROS ---
+# --- INICIALIZAÇÃO E TELA DE ENTRADA ---
 if 'nome_heroi' not in st.session_state:
     st.title("🐲 Dragões e Espadas")
-    nome = st.text_input("Nome do herói:", placeholder="Ex: Arthur")
+    
+    # Adicionado: Opção de carregar save logo no início
+    st.subheader("Retornar à Jornada")
+    arquivo_save = st.file_uploader("Arraste seu arquivo .json aqui para carregar seu herói:", type=["json"])
+    if arquivo_save:
+        if st.button("Confirmar Carregamento 📂"):
+            carregar_save(arquivo_save)
+    
+    st.write("---")
+    
+    st.subheader("Nova Jornada")
+    nome = st.text_input("Nome do novo herói:", placeholder="Ex: Arthur")
     
     if st.button("Iniciar Nova Jornada ⚔️"):
         if nome:
@@ -63,7 +80,6 @@ with st.sidebar:
     st.write(f"🛡️ Armadura: {st.session_state.armadura['nome']}")
     st.markdown(f"### 💰 {st.session_state.moedas} Moedas")
     
-    # --- BOTÃO DE SALVAMENTO ---
     st.download_button("💾 SALVAR JOGO", data=export_save(), file_name="save_dragao.json")
     
     with st.expander("🔐 Painel do Dono"):
