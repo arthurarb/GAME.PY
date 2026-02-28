@@ -16,21 +16,16 @@ def carregar_save(arquivo):
         st.session_state.update(dados)
         st.rerun()
 
-# --- INICIALIZAÇÃO E TELA DE ENTRADA ---
+# --- INICIALIZAÇÃO ---
 if 'nome_heroi' not in st.session_state:
     st.title("🐲 Dragões e Espadas")
-    
     st.subheader("Retornar à Jornada")
-    arquivo_save = st.file_uploader("Arraste seu arquivo .json aqui para carregar seu herói:", type=["json"])
-    if arquivo_save:
-        if st.button("Confirmar Carregamento 📂"):
-            carregar_save(arquivo_save)
-    
+    arquivo_save = st.file_uploader("Arraste seu arquivo .json aqui:", type=["json"])
+    if arquivo_save and st.button("Confirmar Carregamento 📂"):
+        carregar_save(arquivo_save)
     st.write("---")
-    
     st.subheader("Nova Jornada")
     nome = st.text_input("Nome do novo herói:", placeholder="Ex: Arthur")
-    
     if st.button("Iniciar Nova Jornada ⚔️"):
         if nome:
             st.session_state.update({
@@ -68,15 +63,17 @@ with st.sidebar:
     st.header(f"👤 {st.session_state.nome_heroi}")
     st.write(f"❤️ HP: {st.session_state.vida} / {st.session_state.vida_max}")
     st.progress(max(0.0, min(1.0, st.session_state.vida / st.session_state.vida_max)) if st.session_state.vida_max > 0 else 0.0)
-    
-    st.write(f"🧪 Poções de Cura: {st.session_state.pocoes}")
-    st.write(f"⚡ Poções de Fúria: {st.session_state.pocoes_furia}")
-    
-    st.write(f"🗡️ Arma: {st.session_state.espada['nome']}")
-    st.write(f"🛡️ Armadura: {st.session_state.armadura['nome']}")
+    st.write(f"🧪 Poções Cura: {st.session_state.pocoes} | ⚡ Poções Fúria: {st.session_state.pocoes_furia}")
+    st.write(f"🗡️ Arma: {st.session_state.espada['nome']} | 🛡️ Armadura: {st.session_state.armadura['nome']}")
     st.markdown(f"### 💰 {st.session_state.moedas} Moedas")
     
-    # --- MISSÕES NA SIDEBAR (ADICIONADO) ---
+    # EXIBIÇÃO DAS RODADAS DE FÚRIA (SOLICITADO)
+    if st.session_state.furia_rodadas > 0:
+        st.warning(f"🔥 FÚRIA ATIVA: {st.session_state.furia_rodadas} rodadas restantes!")
+    else:
+        st.write("❄️ Fúria Inativa")
+
+    # MISSÕES ABAIXO DA FÚRIA
     if st.session_state.missoes_ativas:
         st.markdown("---")
         st.subheader("📜 Missões Ativas")
@@ -84,8 +81,7 @@ with st.sidebar:
             prog = ", ".join([f"{k}: {dados['p'][k]}/{dados['a'][k]}" for k in dados['a']])
             st.write(f"**{npc}**: {prog}")
             if st.button(f"❌ Cancelar {npc}", key=f"can_{npc}"):
-                del st.session_state.missoes_ativas[npc]
-                st.rerun()
+                del st.session_state.missoes_ativas[npc]; st.rerun()
     st.markdown("---")
 
     st.download_button("💾 SALVAR JOGO", data=export_save(), file_name="save_dragao.json")
@@ -95,39 +91,18 @@ with st.sidebar:
         if senha == "05062012":
             if st.button("💰 Dinheiro Infinito"): st.session_state.moedas += 99999; st.rerun()
             if st.button("🧪 Kit Poções (99)"): st.session_state.pocoes = 99; st.session_state.pocoes_furia = 99; st.rerun()
+            if st.button("❤️ VIDA INFINITA"): st.session_state.vida_max = 9999999; st.session_state.vida = 9999999; st.rerun()
+            if st.button("🏘️ Spawnar Vila Agora"): st.session_state.achou_vila = True; st.rerun()
             
-            if st.button("❤️ VIDA INFINITA"):
-                st.session_state.vida_max = 9999999
-                st.session_state.vida = 9999999
-                st.rerun()
-
-            if st.button("🏘️ Spawnar Vila Agora"):
-                st.session_state.achou_vila = True; st.rerun()
-
-            st.write("⚔️ Escolher Qualquer Arma:")
             armas_adm = {"Madeira 🪵": 7, "Pedra 🪨": 10, "Ferro ⚔️": 14, "Ouro 👑": 18, "Cavaleiro 🛡️": 22, "Rei Caído 💀": 50, "CRIADOR ⚡": 9999}
             sel_arma = st.selectbox("Armas:", list(armas_adm.keys()), key="adm_w")
-            if st.button("Equipar Arma Selecionada"):
-                st.session_state.espada = {"nome": sel_arma, "dano": armas_adm[sel_arma]}; st.rerun()
+            if st.button("Equipar Arma"): st.session_state.espada = {"nome": sel_arma, "dano": armas_adm[sel_arma]}; st.rerun()
 
-            st.write("🛡️ Escolher Qualquer Armadura:")
             arms_adm = {"Madeira 🪵": 0, "Couro 🪵": 10, "Ferro ⚙️": 25, "Ouro 👑": 50, "Cavaleiro 🛡️": 75, "Rei Caído 💀": 100, "DEUS DA GUERRA 🛡️": 99999}
             sel_arm = st.selectbox("Armaduras:", list(arms_adm.keys()), key="adm_a")
-            if st.button("Equipar Armadura Selecionada"):
+            if st.button("Equipar Armadura"):
                 st.session_state.armadura = {"nome": sel_arm, "bonus": arms_adm[sel_arm]}
-                st.session_state.vida_max = 100 + arms_adm[sel_arm]
-                st.session_state.vida = st.session_state.vida_max; st.rerun()
-
-            st.write("🏰 Spawnar Qualquer Dungeon:")
-            dungs_adm = ["Gosmas (Fácil)", "Goblins (Médio)", "Dragões (Difícil)", "COVIL DO REI DRAGÃO 👑"]
-            sel_dung = st.selectbox("Dungeons:", dungs_adm, key="adm_d")
-            if st.button("Spawnar Dungeon Agora"):
-                st.session_state.dungeon_tipo = sel_dung
-                st.session_state.em_dungeon = True; st.rerun()
-            
-            st.write("👾 Spawn Monstro:")
-            esc_m = st.selectbox("Monstro:", ["Gosma 🟢", "Goblin 👺", "Dragão 🐲", "🔥 REI DRAGÃO 🔥", "🌌 DRAGÃO DEUS 🌌"])
-            if st.button("Spawn Agora"): spawn(esc_m); st.rerun()
+                st.session_state.vida_max = 100 + arms_adm[sel_arm]; st.session_state.vida = st.session_state.vida_max; st.rerun()
 
     if st.button("🔄 Reset Total"):
         for k in list(st.session_state.keys()): del st.session_state[k]
@@ -137,8 +112,7 @@ with st.sidebar:
 if st.session_state.vida <= 0:
     st.error("💀 VOCÊ MORREU!")
     if st.button("Pagar Resgate (50 💰) e Renascer (25 HP)"):
-        if st.session_state.moedas >= 50:
-            st.session_state.moedas -= 50; st.session_state.vida = 25; st.session_state.em_combate = False; st.rerun()
+        if st.session_state.moedas >= 50: st.session_state.moedas -= 50; st.session_state.vida = 25; st.session_state.em_combate = False; st.rerun()
 
 elif st.session_state.em_combate:
     m = st.session_state.monstro
@@ -155,71 +129,55 @@ elif st.session_state.em_combate:
         if st.session_state.furia_rodadas > 0: st.session_state.furia_rodadas -= 1
         if m['v'] <= 0:
             st.session_state.moedas += m['o']
-            for npc, dados in st.session_state.missoes_ativas.items():
-                if m['n'] in dados['p']: dados['p'][m['n']] = min(dados['a'][m['n']], dados['p'][m['n']] + 1)
+            for npc, d in st.session_state.missoes_ativas.items():
+                if m['n'] in d['p']: d['p'][m['n']] = min(d['a'][m['n']], d['p'][m['n']] + 1)
             st.session_state.em_dungeon = False; st.session_state.em_combate = False; st.rerun()
         else:
             st.session_state.vida -= m['d']; st.rerun()
     
     if b2.button("Cura 🧪") and st.session_state.pocoes > 0:
-        st.session_state.vida = min(st.session_state.vida_max, st.session_state.vida + 40)
-        st.session_state.pocoes -= 1; st.rerun()
+        st.session_state.vida = min(st.session_state.vida_max, st.session_state.vida + 40); st.session_state.pocoes -= 1; st.rerun()
+    
     if b3.button("Fúria ⚡") and st.session_state.pocoes_furia > 0:
-        st.session_state.furia_rodadas = 3; st.session_state.pocoes_furia -= 1; st.rerun()
+        # LÓGICA ACUMULATIVA (SOLICITADO): +5 rodadas por poção
+        st.session_state.furia_rodadas += 5
+        st.session_state.pocoes_furia -= 1; st.rerun()
+    
     if b4.button("FUGIR 🏃"): st.session_state.em_combate = False; st.rerun()
 
 # --- VILA ---
 elif st.session_state.na_vila:
     st.subheader("🏘️ Vila")
     t1, t2, t3, t4 = st.tabs(["📜 Missões", "⚔️ Armas", "🛡️ Armaduras", "🧪 Alquimia"])
-    
     with t1:
-        miss = [
-            {"i": "Joshua", "de": "2 Gosmas", "a": {"Gosma 🟢": 2}, "p": 25},
-            {"i": "Silas", "de": "5 Gosmas", "a": {"Gosma 🟢": 5}, "p": 40},
-            {"i": "Maria", "de": "3 Goblins", "a": {"Goblin 👺": 3}, "p": 70},
-            {"i": "Bram", "de": "5 Gobs e 3 Gosmas", "a": {"Goblin 👺": 5, "Gosma 🟢": 3}, "p": 120},
-            {"i": "Elara", "de": "1 Dragão", "a": {"Dragão 🐲": 1}, "p": 150},
-            {"i": "REI", "de": "Mate o REI DRAGÃO", "a": {"🔥 REI DRAGÃO 🔥": 1}, "p": 500}
-        ]
+        miss = [{"i": "Joshua", "de": "2 Gosmas", "a": {"Gosma 🟢": 2}, "p": 25}, {"i": "Silas", "de": "5 Gosmas", "a": {"Gosma 🟢": 5}, "p": 40}, {"i": "Maria", "de": "3 Goblins", "a": {"Goblin 👺": 3}, "p": 70}, {"i": "Bram", "de": "5 Gobs e 3 Gosmas", "a": {"Goblin 👺": 5, "Gosma 🟢": 3}, "p": 120}, {"i": "Elara", "de": "1 Dragão", "a": {"Dragão 🐲": 1}, "p": 150}, {"i": "REI", "de": "Mate o REI DRAGÃO", "a": {"🔥 REI DRAGÃO 🔥": 1}, "p": 500}]
         for x in miss:
             if x['i'] not in st.session_state.missoes_ativas:
                 if st.button(f"Missão de {x['i']}: {x['de']}"):
                     st.session_state.missoes_ativas[x['i']] = {"a": x['a'], "p": {k:0 for k in x['a']}, "pago": x['p']}; st.rerun()
             else:
                 at = st.session_state.missoes_ativas[x['i']]
-                prog = ", ".join([f"{k}: {at['p'][k]}/{at['a'][k]}" for k in at['a']])
-                st.write(f"📌 {x['i']}: {prog}")
                 if all(at['p'][k] >= at['a'][k] for k in at['a']):
-                    if st.button(f"Entregar para {x['i']} ✅", key=f"ent_{x['i']}"):
+                    if st.button(f"Entregar para {x['i']} ✅"):
                         st.session_state.moedas += at['pago']; del st.session_state.missoes_ativas[x['i']]; st.rerun()
-                elif st.button(f"Cancelar {x['i']}", key=f"can_vila_{x['i']}"):
-                    del st.session_state.missoes_ativas[x['i']]; st.rerun()
 
     with t2:
         loja_w = {"Pedra 🪨": (150, 10), "Ferro ⚔️": (250, 14), "Ouro 👑": (400, 18), "Cavaleiro 🛡️": (1000, 22), "Rei Caído 💀": (3500, 50)}
         for n, (c, d) in loja_w.items():
-            if st.button(f"{n} ({d} Dano) - {c}💰"):
-                if st.session_state.moedas >= c:
-                    st.session_state.moedas -= c; st.session_state.espada = {"nome": n, "dano": d}; st.rerun()
+            if st.button(f"{n} ({d} D) - {c}💰"):
+                if st.session_state.moedas >= c: st.session_state.moedas -= c; st.session_state.espada = {"nome": n, "dano": d}; st.rerun()
 
     with t3:
         loja_a = {"Couro 🪵": (100, 10), "Ferro ⚙️": (200, 25), "Ouro 👑": (400, 50), "Cavaleiro 🛡️": (800, 75), "Rei Caído 💀": (1500, 100)}
         for n, (c, b) in loja_a.items():
-            if st.button(f"Armadura de {n} (+{b} HP) - {c}💰"):
-                if st.session_state.moedas >= c:
-                    st.session_state.moedas -= c
-                    st.session_state.armadura = {"nome": n, "bonus": b}
-                    st.session_state.vida_max = 100 + b
-                    st.session_state.vida = st.session_state.vida_max
-                    st.rerun()
+            if st.button(f"Armadura {n} (+{b} HP) - {c}💰"):
+                if st.session_state.moedas >= c: st.session_state.moedas -= c; st.session_state.armadura = {"nome": n, "bonus": b}; st.session_state.vida_max = 100 + b; st.session_state.vida = st.session_state.vida_max; st.rerun()
     
     with t4:
         if st.button("Poção Cura (35💰)"):
             if st.session_state.moedas >= 35: st.session_state.moedas -= 35; st.session_state.pocoes += 1; st.rerun()
         if st.button("Poção Fúria (45💰)"):
             if st.session_state.moedas >= 45: st.session_state.moedas -= 45; st.session_state.pocoes_furia += 1; st.rerun()
-
     if st.button("Sair da Vila 🚪"): st.session_state.na_vila = False; st.rerun()
 
 # --- MAPA ---
@@ -227,35 +185,23 @@ else:
     st.subheader("🗺️ Exploração")
     c1, c2 = st.columns(2)
     if c1.button("Andar 🥾"):
-        if random.randint(1, 100) == 1:
-            st.session_state.dungeon_tipo = "COVIL DO REI DRAGÃO 👑"; st.session_state.em_dungeon = True
-        elif random.randint(1, 3) == 1:
-            st.session_state.achou_vila = True
-        elif random.randint(1, 25) == 1:
-            st.session_state.dungeon_tipo = "Dragões (Difícil)"; st.session_state.em_dungeon = True
-        elif random.randint(1, 15) == 1:
-            st.session_state.dungeon_tipo = "Goblins (Médio)"; st.session_state.em_dungeon = True
-        elif random.randint(1, 10) == 1:
-            st.session_state.dungeon_tipo = "Gosmas (Fácil)"; st.session_state.em_dungeon = True
+        if random.randint(1, 100) == 1: st.session_state.dungeon_tipo = "COVIL DO REI DRAGÃO 👑"; st.session_state.em_dungeon = True
+        elif random.randint(1, 3) == 1: st.session_state.achou_vila = True
+        elif random.randint(1, 25) == 1: st.session_state.dungeon_tipo = "Dragões (Difícil)"; st.session_state.em_dungeon = True
+        elif random.randint(1, 15) == 1: st.session_state.dungeon_tipo = "Goblins (Médio)"; st.session_state.em_dungeon = True
+        elif random.randint(1, 10) == 1: st.session_state.dungeon_tipo = "Gosmas (Fácil)"; st.session_state.em_dungeon = True
         st.rerun()
-        
     if c2.button("Lutar 👾"): spawn(); st.rerun()
-    
     if st.session_state.em_dungeon:
-        st.warning(f"📍 ENCONTRADO: {st.session_state.dungeon_tipo}")
-        col_d1, col_d2 = st.columns(2)
-        if col_d1.button("ENTRAR! ⚔️"):
+        st.warning(f"📍 {st.session_state.dungeon_tipo}")
+        if st.button("ENTRAR! ⚔️"):
             if "REI" in st.session_state.dungeon_tipo: spawn("🔥 REI DRAGÃO 🔥")
             elif "Dragão" in st.session_state.dungeon_tipo: spawn("Dragão 🐲")
             elif "Goblin" in st.session_state.dungeon_tipo: spawn("Goblin 👺")
             else: spawn("Gosma 🟢")
             st.rerun()
-        if col_d2.button("Ignorar Dungeon"): st.session_state.em_dungeon = False; st.rerun()
-
+        if st.button("Ignorar Dungeon"): st.session_state.em_dungeon = False; st.rerun()
     if st.session_state.achou_vila:
         st.success("🏘️ Vila avistada!")
-        col_v1, col_v2 = st.columns(2)
-        if col_v1.button("Entrar na Vila 🚪"): 
-            st.session_state.na_vila = True; st.session_state.achou_vila = False; st.rerun()
-        if col_v2.button("Ignorar Vila 🚶"): 
-            st.session_state.achou_vila = False; st.rerun()
+        if st.button("Entrar na Vila 🚪"): st.session_state.na_vila = True; st.session_state.achou_vila = False; st.rerun()
+        if st.button("Ignorar Vila 🚶"): st.session_state.achou_vila = False; st.rerun()
