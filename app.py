@@ -10,7 +10,8 @@ if 'vida' not in st.session_state:
         'vida': 100, 'moedas': 20, 'nivel': 1, 'pocoes': 2,
         'espada': {"nome": "Madeira 🪵", "dano": 7},
         'em_combate': False, 'monstro_atual': None,
-        'na_vila': False, 'log': ["O jovem Arthur inicia sua jornada!"]
+        'na_vila': False, 'achou_vila': False,
+        'log': ["O jovem Arthur inicia sua jornada!"]
     })
 
 def add_log(texto):
@@ -138,6 +139,7 @@ else:
         if st.button("Explorar o Mapa 🥾"):
             if random.randint(1, 5) == 1: # 1 em 5 chance de achar vila
                 st.session_state.achou_vila = True
+                add_log("Você avistou uma vila!")
             else:
                 add_log("Você andou mas não encontrou nada.")
             st.rerun()
@@ -150,13 +152,14 @@ else:
                 add_log("Não há monstros por aqui.")
             st.rerun()
 
-    if st.get('achou_vila'):
+    if st.session_state.achou_vila:
         st.success("🏘️ Você avistou uma vila ao longe!")
-        if st.button("Entrar na Vila"):
+        c_v1, c_v2 = st.columns(2)
+        if c_v1.button("Entrar na Vila"):
             st.session_state.na_vila = True
             st.session_state.achou_vila = False
             st.rerun()
-        if st.button("Ignorar Vila"):
+        if c_v2.button("Ignorar Vila"):
             st.session_state.achou_vila = False
             st.rerun()
 
