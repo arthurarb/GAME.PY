@@ -1,113 +1,126 @@
 import streamlit as st
 import random
 
-# Configuração da página
-st.set_page_config(page_title="Arthur's RPG", page_icon="⚔️")
+# Configuração Inicial
+st.set_page_config(page_title="Dragões e Espadas", page_icon="🐲")
 
-# --- INICIALIZAÇÃO DO ESTADO DO JOGO ---
+# --- ESTADO DO JOGO ---
 if 'vida' not in st.session_state:
-    st.session_state.vida = 100
-if 'moedas' not in st.session_state:
-    st.session_state.moedas = 20
-if 'inventario' not in st.session_state:
-    st.session_state.inventario = []
-if 'log' not in st.session_state:
-    st.session_state.log = ["O despertar: Você acorda em uma terra mística..."]
+    st.session_state.update({
+        'vida': 100, 'moedas': 20, 'nivel': 1, 'xp': 0,
+        'pocoes': 2, 'em_combate': False, 'monstro_atual': None,
+        'log': ["Bem-vindo ao reino de Dragões e Espadas!"]
+    })
 
-# --- FUNÇÕES DO JOGO ---
-def adicionar_log(texto):
+def add_log(texto):
     st.session_state.log.append(texto)
 
-def reset_jogo():
-    st.session_state.vida = 100
-    st.session_state.moedas = 20
-    st.session_state.inventario = []
-    st.session_state.log = ["O jogo recomeçou!"]
+# --- SISTEMA DE COMBATE ---
+def iniciar_combate():
+    # Monstros ficam mais fortes conforme o nível do Arthur
+    tipos = [
+        {"nome": "Slime 🟢", "vida": 30 * st.session_state.nivel, "dano": 5, "ouro": 15},
+        {"nome": "Goblin 👺", "vida": 50 * st.session_state.nivel, "dano": 12, "ouro": 30},
+        {"nome": "Dragão 🐲", "vida": 100 * st.session_state.nivel, "dano": 25, "ouro": 100}
+    ]
+    st.session_state.monstro_atual = random.choice(tipos)
+    st.session_state.em_combate = True
+    add_log(f"⚠️ Um {st.session_state.monstro_atual['nome']} apareceu!")
 
-# --- INTERFACE LATERAL (STATUS) ---
-st.sidebar.title("👤 Status do Herói")
-st.sidebar.subheader(f"Vida: {st.session_state.vida} ❤️")
-st.sidebar.progress(max(0, min(st.session_state.vida, 100)))
-st.sidebar.subheader(f"Moedas: {st.session_state.moedas} 💰")
-st.sidebar.write("---")
-st.sidebar.write("🎒 **Inventário:**")
-if not st.session_state.inventario:
-    st.sidebar.write("Vazio")
-for item in st.session_state.inventario:
-    st.sidebar.write(f"- {item}")
+# --- INTERFACE ---
+st.title("🐲 Dragões e Espadas")
 
-if st.sidebar.button("Reiniciar Jogo"):
-    reset_jogo()
-    st.rerun()
-
-# --- TELA PRINCIPAL ---
-st.title("⚔️ Aventura de Emojis")
-
-if st.session_state.vida <= 0:
-    st.error("💀 Você foi derrotado! Que pena...")
-    if st.button("Tentar Novamente"):
-        reset_jogo()
+# Barra Lateral de Status
+with st.sidebar:
+    st.header("📊 Status do Arthur")
+    st.write(f"⭐ Nível: {st.session_state.nivel}")
+    st.write(f"❤️ Vida: {st.session_state.vida}/100")
+    st.progress(max(0, st.session_state.vida / 100))
+    st.write(f"💰 Moedas: {st.session_state.moedas}")
+    st.write(f"🧪 Poções: {st.session_state.pocoes}")
+    if st.button("Reiniciar Aventura"):
+        for key in st.session_state.keys(): del st.session_state[key]
         st.rerun()
+
+# --- LÓGICA DE TELA ---
+if st.session_state.vida <= 0:
+    st.error("💀 Você caiu em batalha...")
+    if st.button("Renascer"):
+        st.session_state.vida = 100
+        st.rerun()
+
+elif not st.session_state.em_combate:
+    st.subheader("📍 Estrada Segura")
+    st.write("Você está caminhando pelo reino. O que deseja fazer?")
+    if st.button("Procurar Perigo (Explorar)"):
+        iniciar_combate()
+        st.rerun()
+    if st.button("Comprar Poção (20 💰)") and st.session_state.moedas >= 20:
+        st.session_state.moedas -= 20
+        st.session_state.pocoes += 1
+        st.success("🧪 Você comprou uma poção!")
+
 else:
-    # Divisão da tela
-    col_historia, col_loja = st.columns([2, 1])
+    # TELA DE COMBATE
+    m = st.session_state.monstro_atual
+    st.subheader(f"⚔️ BATALHA: Arthur vs {m['nome']}")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("Vida do Monstro", f"{m['vida']} HP")
+    with col2:
+        st.metric("Seu HP", f"{st.session_state.vida} HP")
 
-    with col_historia:
-        st.subheader("📖 O que você faz?")
-        
-        # Sistema de Perguntas/Caminhos
-        escolha = st.radio("Escolha seu caminho:", 
-                          ["Explorar a Floresta 🌲", "Entrar na Caverna Escura 🕳️", "Procurar por Monstros 👾"])
-
-        if st.button("Confirmar Ação"):
-            sorte = random.randint(1, 10)
+    # AÇÕES DE TURNO
+    c1, c2, c3 = st.columns(3)
+    
+    with c1:
+        if st.button("Atacar! ⚔️"):
+            dano_arthur = random.randint(10, 20) + (st.session_state.nivel * 2)
+            m['vida'] -= dano_arthur
+            add_log(f"Você causou {dano_arthur} de dano!")
             
-            if escolha == "Explorar a Floresta 🌲":
-                if sorte > 3:
-                    ganho = random.randint(5, 15)
-                    st.session_state.moedas += ganho
-                    adicionar_log(f"🌲 Você explorou a floresta e achou {ganho} moedas!")
-                else:
-                    dano = random.randint(10, 20)
-                    st.session_state.vida -= dano
-                    adicionar_log(f"🐝 Você foi picado por abelhas! -{dano} de vida.")
-
-            elif escolha == "Entrar na Caverna Escura 🕳️":
-                if sorte > 6:
-                    st.session_state.moedas += 50
-                    adicionar_log("💎 Tesouro! Você achou um diamante de 50 moedas!")
-                else:
-                    st.session_state.vida -= 30
-                    adicionar_log("🦇 Morcegos te atacaram na caverna! -30 de vida.")
-
-            elif escolha == "Procurar por Monstros 👾":
-                monstros = [("Slime 🟢", 10, 10), ("Goblin 👺", 20, 25), ("Dragão 🐲", 50, 100)]
-                m_nome, m_dano, m_recompensa = random.choice(monstros)
-                st.session_state.vida -= m_dano
-                st.session_state.moedas += m_recompensa
-                adicionar_log(f"⚔️ Lutou com {m_nome}! Perdeu {m_dano} HP, ganhou {m_recompensa} moedas.")
-
-    with col_loja:
-        st.subheader("🛒 Loja da Vila")
-        if st.button("Poção de Cura (15 💰)"):
-            if st.session_state.moedas >= 15:
-                st.session_state.moedas -= 15
-                st.session_state.vida = min(100, st.session_state.vida + 30)
-                st.success("❤️ +30 de Vida!")
+            if m['vida'] <= 0:
+                st.session_state.moedas += m['ouro']
+                st.session_state.xp += 1
+                if st.session_state.xp >= 3:
+                    st.session_state.nivel += 1
+                    st.session_state.xp = 0
+                    add_log("🌟 LEVEL UP! Você ficou mais forte!")
+                add_log(f"✅ Vitória! Ganhou {m['ouro']} moedas.")
+                st.session_state.em_combate = False
             else:
-                st.error("Dinheiro insuficiente!")
+                dano_m = random.randint(1, m['dano'])
+                st.session_state.vida -= dano_m
+                add_log(f"O {m['nome']} revidou! -{dano_m} HP.")
+            st.rerun()
 
-        if st.button("Espada de Ferro (40 💰)"):
-            if st.session_state.moedas >= 40 and "Espada de Ferro" not in st.session_state.inventario:
-                st.session_state.moedas -= 40
-                st.session_state.inventario.append("Espada de Ferro")
-                st.success("⚔️ Você comprou uma Espada!")
+    with c2:
+        if st.button("Usar Poção 🧪"):
+            if st.session_state.pocoes > 0:
+                st.session_state.vida = min(100, st.session_state.vida + 40)
+                st.session_state.pocoes -= 1
+                add_log("🧪 Você usou uma poção e recuperou vida!")
+                # Monstro ataca mesmo se você se curar!
+                dano_m = random.randint(1, m['dano'])
+                st.session_state.vida -= dano_m
+                st.rerun()
             else:
-                st.warning("Já possui ou sem dinheiro.")
+                st.warning("Sem poções!")
 
-    # Exibição do Diário (Log)
-    st.write("---")
-    st.subheader("📜 Diário de Aventuras")
-    for msg in reversed(st.session_state.log[-5:]):
-        st.write(msg)
-        
+    with c3:
+        if st.button("Fugir! 🏃"):
+            if random.random() > 0.3:
+                add_log("💨 Você fugiu com sucesso!")
+                st.session_state.em_combate = False
+            else:
+                dano_m = m['dano']
+                st.session_state.vida -= dano_m
+                add_log(f"Falhou em fugir! O {m['nome']} te acertou na corrida: -{dano_m} HP.")
+            st.rerun()
+
+# Exibir Log
+st.write("---")
+for msg in reversed(st.session_state.log[-5:]):
+    st.write(msg)
+    
