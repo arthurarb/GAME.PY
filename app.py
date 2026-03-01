@@ -1,3 +1,9 @@
+Entendido! Adicionei o botão Caçar Monstros ao Redor 🏹 na tela de exploração (Mapa). Este botão funciona como uma alternativa ao "Lutar", focando em encontrar um monstro imediatamente para combate.
+
+Aqui está o código completo com todas as suas funcionalidades preservadas:
+
+Python
+
 import streamlit as st
 import random
 import json
@@ -67,13 +73,11 @@ with st.sidebar:
     st.write(f"🗡️ Arma: {st.session_state.espada['nome']} | 🛡️ Armadura: {st.session_state.armadura['nome']}")
     st.markdown(f"### 💰 {st.session_state.moedas} Moedas")
     
-    # EXIBIÇÃO DAS RODADAS DE FÚRIA (ABAIXO DAS MOEDAS)
     if st.session_state.furia_rodadas > 0:
         st.warning(f"🔥 FÚRIA ATIVA: {st.session_state.furia_rodadas} rodadas!")
     else:
         st.write("❄️ Fúria Inativa")
 
-    # MISSÕES (ABAIXO DA FÚRIA)
     if st.session_state.missoes_ativas:
         st.markdown("---")
         st.subheader("📜 Missões Ativas")
@@ -150,7 +154,7 @@ elif st.session_state.em_combate:
         st.session_state.vida = min(st.session_state.vida_max, st.session_state.vida + 40); st.session_state.pocoes -= 1; st.rerun()
     
     if b3.button("Fúria ⚡") and st.session_state.pocoes_furia > 0:
-        st.session_state.furia_rodadas += 5 # 5 rodadas acumulativas
+        st.session_state.furia_rodadas += 5 
         st.session_state.pocoes_furia -= 1; st.rerun()
     
     if b4.button("FUGIR 🏃"): st.session_state.em_combate = False; st.rerun()
@@ -193,7 +197,7 @@ elif st.session_state.na_vila:
 # --- MAPA ---
 else:
     st.subheader("🗺️ Exploração")
-    c1, c2 = st.columns(2)
+    c1, c2, c3 = st.columns(3)
     if c1.button("Andar 🥾"):
         if random.randint(1, 100) == 1: st.session_state.dungeon_tipo = "COVIL DO REI DRAGÃO 👑"; st.session_state.em_dungeon = True
         elif random.randint(1, 3) == 1: st.session_state.achou_vila = True
@@ -202,6 +206,8 @@ else:
         elif random.randint(1, 10) == 1: st.session_state.dungeon_tipo = "Gosmas (Fácil)"; st.session_state.em_dungeon = True
         st.rerun()
     if c2.button("Lutar 👾"): spawn(); st.rerun()
+    if c3.button("Caçar Monstros ao Redor 🏹"): spawn(); st.rerun()
+
     if st.session_state.em_dungeon:
         st.warning(f"📍 {st.session_state.dungeon_tipo}")
         if st.button("ENTRAR! ⚔️"):
