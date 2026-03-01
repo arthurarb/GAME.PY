@@ -55,7 +55,7 @@ def spawn(tipo_nome=None):
         st.session_state.monstro = m_data[random.choice(["Gosma 🟢", "Goblin 👺", "Dragão 🐲"])].copy()
     st.session_state.em_combate = True
 
-# --- SIDEBAR E PAINEL ADMIN COMPLETO ---
+# --- SIDEBAR E PAINEL ADMIN ---
 with st.sidebar:
     st.header(f"👤 {st.session_state.nome_heroi}")
     st.caption(f"Classe: {st.session_state.classe}")
@@ -116,17 +116,15 @@ with st.sidebar:
         for k in list(st.session_state.keys()): del st.session_state[k]
         st.rerun()
 
-# --- LÓGICA DE BATALHA ---
+# --- BATALHA ---
 if st.session_state.vida <= 0:
     st.error("💀 VOCÊ MORREU!")
-    if st.button("Pagar Resgate (50 💰) e Renascer (25 HP)"):
+    if st.button("Pagar Resgate (50 💰) e Renascer"):
         if st.session_state.moedas >= 50: st.session_state.moedas -= 50; st.session_state.vida = 25; st.session_state.em_combate = False; st.rerun()
 
 elif st.session_state.em_combate:
     m = st.session_state.monstro
     st.subheader(f"⚔️ Batalha: {m['n']}")
-    
-    # Buffs de Classe
     d_base = st.session_state.espada['dano']
     if st.session_state.classe == "Bárbaro 🪓": d_base += 5
     mult = 2.5 if (st.session_state.furia_rodadas > 0 and st.session_state.classe == "Mago 🧙") else (1.7 if st.session_state.furia_rodadas > 0 else 1.0)
@@ -134,7 +132,7 @@ elif st.session_state.em_combate:
     if st.session_state.classe == "Arqueiro 🏹" and random.random() < 0.2:
         d_at *= 2
         st.warning("🎯 CRÍTICO!")
-
+    
     col1, col2 = st.columns(2)
     col1.metric("HP Inimigo", m['v'])
     col2.metric("Seu HP", st.session_state.vida)
@@ -147,57 +145,36 @@ elif st.session_state.em_combate:
         if m['v'] <= 0:
             rec = int(m['o'] * 1.5) if st.session_state.classe == "Mercador 💰" else m['o']
             st.session_state.moedas += rec
-            for npc, d in st.session_state.missoes_ativas.items():
+            for n, d in st.session_state.missoes_ativas.items():
                 if m['n'] in d['p']: d['p'][m['n']] = min(d['a'][m['n']], d['p'][m['n']] + 1)
-            st.session_state.em_dungeon = False; st.session_state.em_combate = False; st.rerun()
+            st.session_state.em_combate = False; st.session_state.em_dungeon = False; st.rerun()
         else:
             st.session_state.vida -= m['d']; st.rerun()
-    
     if b2.button("Cura 🧪") and st.session_state.pocoes > 0:
         v_c = 60 if st.session_state.classe == "Paladino 🛡️" else 40
         st.session_state.vida = min(st.session_state.vida_max, st.session_state.vida + v_c); st.session_state.pocoes -= 1; st.rerun()
-    
     if b3.button("Fúria ⚡") and st.session_state.pocoes_furia > 0:
         st.session_state.furia_rodadas += 5; st.session_state.pocoes_furia -= 1; st.rerun()
-    
     if b4.button("FUGIR 🏃"): st.session_state.em_combate = False; st.rerun()
 
-# --- VILA (COM MAGO E TODAS MISSÕES) ---
+# --- VILA ---
 elif st.session_state.na_vila:
     st.subheader("🏘️ Vila")
     tabs = st.tabs(["📜 Missões", "⚔️ Armas", "🛡️ Armaduras", "🧪 Alquimia", "🧙 Mago"])
-    
     with tabs[4]:
         st.write("### Mago das Classes")
-        classes_info = {
-            "Guerreiro ⚔️": "Buff: +15 HP Máximo inicial.",
-            "Mago 🧙": "Buff: Fúria poderosa (2.5x).",
-            "Ladino 🗡️": "Buff: Sorte em achar vilas/dungeons.",
-            "Paladino 🛡️": "Buff: Cura melhorada.",
-            "Bárbaro 🪓": "Buff: +5 Dano fixo.",
-            "Arqueiro 🏹": "Buff: 20% Chance de Crítico (2x).",
-            "Clérigo ⛪": "Buff: Regenera 5 HP por turno.",
-            "Mercador 💰": "Buff: +50% Ouro de monstros."
-        }
+        classes_info = {"Guerreiro ⚔️": "+15 HP Max inicial.", "Mago 🧙": "Fúria 2.5x.", "Ladino 🗡️": "Sorte em Vilas/Dungeons.", "Paladino 🛡️": "Cura +60 HP.", "Bárbaro 🪓": "+5 Dano fixo.", "Arqueiro 🏹": "Crítico (2x).", "Clérigo ⛪": "Regen 5 HP/turno.", "Mercador 💰": "+50% Ouro."}
         for n_cl, d_cl in classes_info.items():
-            col_m1, col_m2 = st.columns([1, 2])
-            if col_m1.button(f"Ser {n_cl}"):
+            c_m1, c_m2 = st.columns([1, 2])
+            if c_m1.button(f"Ser {n_cl}"):
                 st.session_state.classe = n_cl
                 st.session_state.vida_max = (115 if n_cl == "Guerreiro ⚔️" else 100) + st.session_state.armadura['bonus']
                 st.session_state.vida = st.session_state.vida_max; st.rerun()
-            col_m2.write(d_cl)
-
+            c_m2.write(d_cl)
     with tabs[0]:
         if st.button("🏹 Caçar Monstros ao Redor"): spawn(); st.rerun()
         st.write("---")
-        miss = [
-            {"i": "Joshua", "de": "2 Gosmas", "a": {"Gosma 🟢": 2}, "p": 25},
-            {"i": "Silas", "de": "5 Gosmas", "a": {"Gosma 🟢": 5}, "p": 40},
-            {"i": "Maria", "de": "3 Goblins", "a": {"Goblin 👺": 3}, "p": 70},
-            {"i": "Bram", "de": "5 Gobs e 3 Gosmas", "a": {"Goblin 👺": 5, "Gosma 🟢": 3}, "p": 120},
-            {"i": "Elara", "de": "1 Dragão", "a": {"Dragão 🐲": 1}, "p": 150},
-            {"i": "REI", "de": "Mate o REI DRAGÃO", "a": {"🔥 REI DRAGÃO 🔥": 1}, "p": 500}
-        ]
+        miss = [{"i": "Joshua", "de": "2 Gosmas", "a": {"Gosma 🟢": 2}, "p": 25}, {"i": "Silas", "de": "5 Gosmas", "a": {"Gosma 🟢": 5}, "p": 40}, {"i": "Maria", "de": "3 Goblins", "a": {"Goblin 👺": 3}, "p": 70}, {"i": "Bram", "de": "5 Gobs e 3 Gosmas", "a": {"Goblin 👺": 5, "Gosma 🟢": 3}, "p": 120}, {"i": "Elara", "de": "1 Dragão", "a": {"Dragão 🐲": 1}, "p": 150}, {"i": "REI", "de": "Mate o REI DRAGÃO", "a": {"🔥 REI DRAGÃO 🔥": 1}, "p": 500}]
         for x in miss:
             if x['i'] not in st.session_state.missoes_ativas:
                 if st.button(f"Missão de {x['i']}: {x['de']}"):
@@ -206,13 +183,11 @@ elif st.session_state.na_vila:
                 at = st.session_state.missoes_ativas[x['i']]
                 if all(at['p'][k] >= at['a'][k] for k in at['a']) and st.button(f"Entregar para {x['i']} ✅"):
                     st.session_state.moedas += at['pago']; del st.session_state.missoes_ativas[x['i']]; st.rerun()
-
     with tabs[1]:
         loja_w = {"Pedra 🪨": (150, 10), "Ferro ⚔️": (250, 14), "Ouro 👑": (400, 18), "Cavaleiro 🛡️": (1000, 22), "Rei Caído 💀": (3500, 50)}
         for n, (c, d) in loja_w.items():
             if st.button(f"{n} ({d} D) - {c}💰") and st.session_state.moedas >= c:
                 st.session_state.moedas -= c; st.session_state.espada = {"nome": n, "dano": d}; st.rerun()
-
     with tabs[2]:
         loja_a = {"Couro 🪵": (100, 10), "Ferro ⚙️": (200, 25), "Ouro 👑": (400, 50), "Cavaleiro 🛡️": (800, 75), "Rei Caído 💀": (1500, 100)}
         for n, (c, b) in loja_a.items():
@@ -220,27 +195,24 @@ elif st.session_state.na_vila:
                 st.session_state.moedas -= c; st.session_state.armadura = {"nome": n, "bonus": b}
                 st.session_state.vida_max = (115 if st.session_state.classe == "Guerreiro ⚔️" else 100) + b
                 st.session_state.vida = st.session_state.vida_max; st.rerun()
-
     with tabs[3]:
         if st.button("Poção Cura (35💰)") and st.session_state.moedas >= 35: st.session_state.moedas -= 35; st.session_state.pocoes += 1; st.rerun()
         if st.button("Poção Fúria (45💰)") and st.session_state.moedas >= 45: st.session_state.moedas -= 45; st.session_state.pocoes_furia += 1; st.rerun()
-    
     if st.button("Sair da Vila 🚪"): st.session_state.na_vila = False; st.rerun()
 
 # --- MAPA ---
 else:
     st.subheader("🗺️ Exploração")
     c1, c2 = st.columns(2)
-    chance_mod = 2 if st.session_state.classe == "Ladino 🗡️" else 1
+    mod = 2 if st.session_state.classe == "Ladino 🗡️" else 1
     if c1.button("Andar 🥾"):
-        if random.randint(1, 100) <= (1 * chance_mod): st.session_state.dungeon_tipo = "COVIL DO REI DRAGÃO 👑"; st.session_state.em_dungeon = True
-        elif random.randint(1, 4 // chance_mod) == 1: st.session_state.achou_vila = True
-        elif random.randint(1, 25 // chance_mod) == 1: st.session_state.dungeon_tipo = "Dragões (Difícil)"; st.session_state.em_dungeon = True
-        elif random.randint(1, 15 // chance_mod) == 1: st.session_state.dungeon_tipo = "Goblins (Médio)"; st.session_state.em_dungeon = True
-        elif random.randint(1, 10 // chance_mod) == 1: st.session_state.dungeon_tipo = "Gosmas (Fácil)"; st.session_state.em_dungeon = True
+        if random.randint(1, 100) <= (1 * mod): st.session_state.dungeon_tipo = "COVIL DO REI DRAGÃO 👑"; st.session_state.em_dungeon = True
+        elif random.randint(1, 4 // mod) == 1: st.session_state.achou_vila = True
+        elif random.randint(1, 25 // mod) == 1: st.session_state.dungeon_tipo = "Dragões (Difícil)"; st.session_state.em_dungeon = True
+        elif random.randint(1, 15 // mod) == 1: st.session_state.dungeon_tipo = "Goblins (Médio)"; st.session_state.em_dungeon = True
+        elif random.randint(1, 10 // mod) == 1: st.session_state.dungeon_tipo = "Gosmas (Fácil)"; st.session_state.em_dungeon = True
         st.rerun()
     if c2.button("Lutar 👾"): spawn(); st.rerun()
-
     if st.session_state.em_dungeon:
         st.warning(f"📍 Dungeon Avistada: {st.session_state.dungeon_tipo}")
         if st.button("ENTRAR! ⚔️"):
@@ -253,4 +225,4 @@ else:
     if st.session_state.achou_vila:
         st.success("🏘️ Vila avistada!")
         if st.button("Entrar na Vila 🚪"): st.session_state.na_vila = True; st.session_state.achou_vila = False; st.rerun()
-        if st.button("Ignorar Vila 🚶"): st.session_state.achou_vila = False; st.rerun()state.achou_vila = False; st.rerun()
+        if st.button("Ignorar Vila 🚶"): st.session_state.achou_vila = False; st.rerun()
