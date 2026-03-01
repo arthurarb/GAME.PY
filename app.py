@@ -1,9 +1,3 @@
-Entendido! Adicionei o botão Caçar Monstros ao Redor 🏹 na tela de exploração (Mapa). Este botão funciona como uma alternativa ao "Lutar", focando em encontrar um monstro imediatamente para combate.
-
-Aqui está o código completo com todas as suas funcionalidades preservadas:
-
-Python
-
 import streamlit as st
 import random
 import json
