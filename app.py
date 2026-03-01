@@ -224,9 +224,9 @@ else:
             elif "Goblin" in st.session_state.dungeon_tipo: spawn("Goblin 👺")
             else: spawn("Gosma 🟢")
             st.rerun()
-        if st.button("Ignorar"): st.session_state.em_dungeon = False; st.rerun()
+        if st.button("Ignorar Dungeon"): st.session_state.em_dungeon = False; st.rerun()
     
     if st.session_state.achou_vila:
         st.success("🏘️ Vila avistada!")
         if st.button("Entrar"): st.session_state.na_vila = True; st.session_state.achou_vila = False; st.rerun()
-        if st.button("Ignorar"): st.session_state.achou_vila = False; st.rerun()
+        if st.button("Ignorar Vila"): st.session_state.achou_vila = False; st.rerun()
