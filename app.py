@@ -29,7 +29,7 @@ if 'nome_heroi' not in st.session_state:
     if st.button("Iniciar Nova Jornada ⚔️"):
         if nome:
             st.session_state.update({
-                'nome_heroi': nome, 'classe': "Nenhuma 👤", 'vida_max': 100, 'vida': 100, 'moedas': 20, 
+                'nome_heroi': nome, 'classe': "Nenhuma 👤", 'vezes_mudou_classe': 0, 'vida_max': 100, 'vida': 100, 'moedas': 20, 
                 'pocoes': 2, 'pocoes_furia': 0, 'furia_rodadas': 0,
                 'espada': {"nome": "Madeira 🪵", "dano": 7},
                 'armadura': {"nome": "Madeira 🪵", "bonus": 0},
@@ -39,6 +39,8 @@ if 'nome_heroi' not in st.session_state:
             })
             st.rerun()
     st.stop()
+
+if 'vezes_mudou_classe' not in st.session_state: st.session_state.vezes_mudou_classe = 0
 
 # --- FUNÇÕES ---
 def spawn(tipo_nome=None):
@@ -90,6 +92,14 @@ with st.sidebar:
             if st.button("❤️ VIDA INFINITA"): st.session_state.vida_max = 9999999; st.session_state.vida = 9999999; st.rerun()
             if st.button("🏘️ Spawnar Vila Agora"): st.session_state.achou_vila = True; st.rerun()
             
+            st.write("✨ Escolher Classe (MODO DEUS):")
+            lista_classes_adm = ["Guerreiro ⚔️", "Mago 🧙", "Ladino 🗡️", "Paladino 🛡️", "Bárbaro 🪓", "Arqueiro 🏹", "Clérigo ⛪", "Mercador 💰"]
+            classe_escolhida_adm = st.selectbox("Selecione a Classe:", lista_classes_adm)
+            if st.button("Equipar Classe Agora"):
+                st.session_state.classe = classe_escolhida_adm
+                st.session_state.vida_max = (115 if classe_escolhida_adm == "Guerreiro ⚔️" else 100) + st.session_state.armadura['bonus']
+                st.session_state.vida = st.session_state.vida_max; st.rerun()
+
             st.write("🏰 Spawnar Dungeon:")
             dungs_adm = ["Gosmas (Fácil)", "Goblins (Médio)", "Dragões (Difícil)", "COVIL DO REI DRAGÃO 👑"]
             sel_dung = st.selectbox("Escolher Dungeon:", dungs_adm, key="adm_d")
@@ -162,15 +172,32 @@ elif st.session_state.na_vila:
     st.subheader("🏘️ Vila")
     tabs = st.tabs(["📜 Missões", "⚔️ Armas", "🛡️ Armaduras", "🧪 Alquimia", "🧙 Mago"])
     with tabs[4]:
-        st.write("### Mago das Classes")
-        classes_info = {"Guerreiro ⚔️": "+15 HP Max inicial.", "Mago 🧙": "Fúria 2.5x.", "Ladino 🗡️": "Sorte em Vilas/Dungeons.", "Paladino 🛡️": "Cura +60 HP.", "Bárbaro 🪓": "+5 Dano fixo.", "Arqueiro 🏹": "Crítico (2x).", "Clérigo ⛪": "Regen 5 HP/turno.", "Mercador 💰": "+50% Ouro."}
-        for n_cl, d_cl in classes_info.items():
-            c_m1, c_m2 = st.columns([1, 2])
-            if c_m1.button(f"Ser {n_cl}"):
-                st.session_state.classe = n_cl
-                st.session_state.vida_max = (115 if n_cl == "Guerreiro ⚔️" else 100) + st.session_state.armadura['bonus']
-                st.session_state.vida = st.session_state.vida_max; st.rerun()
-            c_m2.write(d_cl)
+        st.write("### Mago do Destino Aleatório")
+        st.write("O Mago cobrará um preço pelo ritual de transformação...")
+        
+        custo_classe = 50 if st.session_state.vezes_mudou_classe == 0 else 450
+        st.markdown(f"**Custo atual:** {custo_classe} 💰")
+        
+        if st.button("🔮 REALIZAR RITUAL ALEATÓRIO"):
+            if st.session_state.moedas >= custo_classe:
+                st.session_state.moedas -= custo_classe
+                st.session_state.vezes_mudou_classe += 1
+                
+                classes_disponiveis = ["Guerreiro ⚔️", "Mago 🧙", "Ladino 🗡️", "Paladino 🛡️", "Bárbaro 🪓", "Arqueiro 🏹", "Clérigo ⛪", "Mercador 💰"]
+                nova_cl = random.choice(classes_disponiveis)
+                
+                st.session_state.classe = nova_cl
+                st.session_state.vida_max = (115 if nova_cl == "Guerreiro ⚔️" else 100) + st.session_state.armadura['bonus']
+                st.session_state.vida = st.session_state.vida_max
+                st.success(f"O ritual foi um sucesso! Você agora é um {nova_cl}!")
+                st.rerun()
+            else:
+                st.error("Você não tem moedas suficientes para o ritual.")
+        
+        st.write("---")
+        st.write("Classes possíveis (Todas com a mesma chance):")
+        st.caption("Guerreiro, Mago, Ladino, Paladino, Bárbaro, Arqueiro, Clérigo e Mercador.")
+
     with tabs[0]:
         if st.button("🏹 Caçar Monstros ao Redor"): spawn(); st.rerun()
         st.write("---")
