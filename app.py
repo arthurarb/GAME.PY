@@ -158,6 +158,10 @@ elif st.session_state.na_vila:
     st.subheader("🏘️ Vila")
     t1, t2, t3, t4 = st.tabs(["📜 Missões", "⚔️ Armas", "🛡️ Armaduras", "🧪 Alquimia"])
     with t1:
+        st.write("---")
+        if st.button("🏹 Caçar Monstros ao Redor"):
+            spawn(); st.rerun()
+        st.write("---")
         miss = [{"i": "Joshua", "de": "2 Gosmas", "a": {"Gosma 🟢": 2}, "p": 25}, {"i": "Silas", "de": "5 Gosmas", "a": {"Gosma 🟢": 5}, "p": 40}, {"i": "Maria", "de": "3 Goblins", "a": {"Goblin 👺": 3}, "p": 70}, {"i": "Bram", "de": "5 Gobs e 3 Gosmas", "a": {"Goblin 👺": 5, "Gosma 🟢": 3}, "p": 120}, {"i": "Elara", "de": "1 Dragão", "a": {"Dragão 🐲": 1}, "p": 150}, {"i": "REI", "de": "Mate o REI DRAGÃO", "a": {"🔥 REI DRAGÃO 🔥": 1}, "p": 500}]
         for x in miss:
             if x['i'] not in st.session_state.missoes_ativas:
@@ -191,7 +195,7 @@ elif st.session_state.na_vila:
 # --- MAPA ---
 else:
     st.subheader("🗺️ Exploração")
-    c1, c2, c3 = st.columns(3)
+    c1, c2 = st.columns(2)
     if c1.button("Andar 🥾"):
         if random.randint(1, 100) == 1: st.session_state.dungeon_tipo = "COVIL DO REI DRAGÃO 👑"; st.session_state.em_dungeon = True
         elif random.randint(1, 3) == 1: st.session_state.achou_vila = True
@@ -200,7 +204,6 @@ else:
         elif random.randint(1, 10) == 1: st.session_state.dungeon_tipo = "Gosmas (Fácil)"; st.session_state.em_dungeon = True
         st.rerun()
     if c2.button("Lutar 👾"): spawn(); st.rerun()
-    if c3.button("Caçar Monstros ao Redor 🏹"): spawn(); st.rerun()
 
     if st.session_state.em_dungeon:
         st.warning(f"📍 {st.session_state.dungeon_tipo}")
