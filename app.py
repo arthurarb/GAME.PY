@@ -96,6 +96,14 @@ with st.sidebar:
             esc_m = st.selectbox("Spawnar:", m_list)
             if st.button("Spawnar Monstro"): spawn(esc_m); st.rerun()
 
+            st.write("🏰 Dungeons:")
+            d_list = ["Gosmas (Fácil)", "Goblins (Médio)", "Dragões (Difícil)", "COVIL DO REI DRAGÃO 👑"]
+            esc_d = st.selectbox("Escolher Dungeon:", d_list)
+            if st.button("Spawnar Dungeon"):
+                st.session_state.dungeon_tipo = esc_d
+                st.session_state.em_dungeon = True
+                st.rerun()
+
             st.write("⚔️ Equipamento:")
             w_list = {"Madeira 🪵": 7, "Pedra 🪨": 10, "Ferro ⚔️": 14, "Ouro 👑": 18, "Cavaleiro 🛡️": 22, "Rei Caído 💀": 50, "CRIADOR ⚡": 99999}
             sel_w = st.selectbox("Armas:", list(w_list.keys()))
@@ -123,7 +131,6 @@ elif st.session_state.em_combate:
     m = st.session_state.monstro
     st.subheader(f"⚔️ Batalha: {m['n']}")
     
-    # Mostrar rodadas de fúria no combate
     if st.session_state.furia_rodadas > 0:
         st.info(f"⚡ Fúria ativa por mais {st.session_state.furia_rodadas} rodadas!")
 
