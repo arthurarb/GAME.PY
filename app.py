@@ -122,6 +122,11 @@ if st.session_state.vida <= 0:
 elif st.session_state.em_combate:
     m = st.session_state.monstro
     st.subheader(f"⚔️ Batalha: {m['n']}")
+    
+    # Mostrar rodadas de fúria no combate
+    if st.session_state.furia_rodadas > 0:
+        st.info(f"⚡ Fúria ativa por mais {st.session_state.furia_rodadas} rodadas!")
+
     d_base = st.session_state.espada['dano']
     if st.session_state.classe == "Bárbaro 🪓": d_base += 5
     mult = 2.5 if (st.session_state.furia_rodadas > 0 and st.session_state.classe == "Mago 🧙") else (1.7 if st.session_state.furia_rodadas > 0 else 1.0)
@@ -133,7 +138,7 @@ elif st.session_state.em_combate:
     col1.metric("HP Inimigo", m['v'])
     col2.metric("Seu HP", st.session_state.vida)
     
-    b1, b2, b3 = st.columns(3)
+    b1, b2, b3, b4, b5 = st.columns(5)
     if b1.button("ATACAR!"):
         m['v'] -= d_at
         if st.session_state.furia_rodadas > 0: st.session_state.furia_rodadas -= 1
@@ -153,7 +158,12 @@ elif st.session_state.em_combate:
         v_c = 60 if st.session_state.classe == "Paladino 🛡️" else 40
         st.session_state.vida = min(st.session_state.vida_max, st.session_state.vida + v_c); st.session_state.pocoes -= 1; st.rerun()
 
-    if b3.button("FUGIR 🏃"):
+    if b3.button("Fúria ⚡") and st.session_state.pocoes_furia > 0:
+        st.session_state.furia_rodadas += 3
+        st.session_state.pocoes_furia -= 1
+        st.rerun()
+
+    if b4.button("FUGIR 🏃"):
         st.session_state.em_combate = False
         st.session_state.em_dungeon = False
         st.warning("Você fugiu da batalha!")
