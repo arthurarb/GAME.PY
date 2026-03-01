@@ -133,7 +133,8 @@ elif st.session_state.em_combate:
     col1.metric("HP Inimigo", m['v'])
     col2.metric("Seu HP", st.session_state.vida)
     
-    if st.button("ATACAR!"):
+    b1, b2, b3 = st.columns(3)
+    if b1.button("ATACAR!"):
         m['v'] -= d_at
         if st.session_state.furia_rodadas > 0: st.session_state.furia_rodadas -= 1
         if st.session_state.classe == "Clérigo ⛪": st.session_state.vida = min(st.session_state.vida_max, st.session_state.vida + 5)
@@ -148,9 +149,15 @@ elif st.session_state.em_combate:
         else:
             st.session_state.vida -= m['d']; st.rerun()
     
-    if st.button("Cura 🧪") and st.session_state.pocoes > 0:
+    if b2.button("Cura 🧪") and st.session_state.pocoes > 0:
         v_c = 60 if st.session_state.classe == "Paladino 🛡️" else 40
         st.session_state.vida = min(st.session_state.vida_max, st.session_state.vida + v_c); st.session_state.pocoes -= 1; st.rerun()
+
+    if b3.button("FUGIR 🏃"):
+        st.session_state.em_combate = False
+        st.session_state.em_dungeon = False
+        st.warning("Você fugiu da batalha!")
+        st.rerun()
 
 elif st.session_state.na_vila:
     st.subheader("🏘️ Vila")
@@ -170,6 +177,8 @@ elif st.session_state.na_vila:
                 st.session_state.vida = st.session_state.vida_max; st.rerun()
 
     with t1:
+        if st.button("🏹 Caçar Monstros ao Redor"): spawn(); st.rerun()
+        st.write("---")
         miss = [{"i": "Joshua", "de": "2 Gosmas", "a": {"Gosma 🟢": 2}, "p": 25}, {"i": "Silas", "de": "5 Gosmas", "a": {"Gosma 🟢": 5}, "p": 40}, {"i": "Maria", "de": "3 Goblins", "a": {"Goblin 👺": 3}, "p": 70}, {"i": "Bram", "de": "5 Gobs e 3 Gosmas", "a": {"Goblin 👺": 5, "Gosma 🟢": 3}, "p": 120}, {"i": "Elara", "de": "1 Dragão", "a": {"Dragão 🐲": 1}, "p": 150}, {"i": "REI", "de": "Mate o REI DRAGÃO", "a": {"🔥 REI DRAGÃO 🔥": 1}, "p": 500}]
         for x in miss:
             if x['i'] not in st.session_state.missoes_ativas:
