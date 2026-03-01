@@ -3,7 +3,7 @@ import random
 import json
 
 # --- SETUP ---
-st.set_page_config(page_title="Dragões e Espadas - VERSÃO COMPLETA ADM", page_icon="🐲", layout="wide")
+st.set_page_config(page_title="Dragões e Espadas", page_icon="🐲", layout="wide")
 
 # --- SISTEMA DE SAVE/LOAD ---
 def export_save():
