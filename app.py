@@ -213,7 +213,7 @@ elif st.session_state.na_vila:
                 if st.session_state.moedas >= c: st.session_state.moedas -= c; st.session_state.espada = {"nome": n, "dano": d}; st.rerun()
 
     with t3:
-        l_a = {"Couro 🪵": (100, 10), "Ferro ⚙️": (200, 25), "Ouro 👑": (400, 50), "Cavaleiro 🛡️": (800, 75), "Rei Caído 💀": (1500, 100)}
+        l_a = {"Couro 🪵": (100, 10), "Ferro ⚙️": (200, 25), "Ouro 👑": (400, 50), "Cavaleiro 🛡️": (800, 75), "Rei Caído 💀": (3000, 100)}
         for n, (c, b) in l_a.items():
             if st.button(f"{n} (+{b} HP) - {c}💰"):
                 if st.session_state.moedas >= c:
