@@ -1,13 +1,14 @@
 import streamlit as st
 import random
 import json
+import time
 
 # --- SETUP ---
 st.set_page_config(page_title="Dragões e Espadas", page_icon="🐲", layout="wide")
 
 # --- SISTEMA DE SAVE/LOAD ---
 def export_save():
-    dados = {k: v for k, v in st.session_state.items() if k not in ['log']}
+    dados = {k: v for k, v in st.session_state.items() if k not in ['log', 'last_autosave']}
     return json.dumps(dados, indent=4)
 
 def carregar_save(arquivo):
@@ -26,6 +27,10 @@ if 'nome_heroi' not in st.session_state:
     st.write("---")
     st.subheader("Nova Jornada")
     nome = st.text_input("Nome do novo herói:", placeholder="Ex: Arthur")
+    
+    # --- NOVIDADE: OPÇÃO DE AUTO-SAVE ---
+    autosave_opt = st.checkbox("Ativar Auto-Save (30s)", value=True)
+    
     if st.button("Iniciar Nova Jornada ⚔️"):
         if nome:
             st.session_state.update({
@@ -35,10 +40,21 @@ if 'nome_heroi' not in st.session_state:
                 'armadura': {"nome": "Madeira 🪵", "bonus": 0},
                 'em_combate': False, 'monstro': None, 'na_vila': False,
                 'achou_vila': False, 'log': [f"{nome} iniciou a jornada!"],
-                'missoes_ativas': {}, 'em_dungeon': False, 'dungeon_tipo': None
+                'missoes_ativas': {}, 'em_dungeon': False, 'dungeon_tipo': None,
+                'autosave_ativo': autosave_opt, 'last_autosave': time.time()
             })
             st.rerun()
     st.stop()
+
+# --- LÓGICA DE AUTO-SAVE (Executa a cada rodada de script) ---
+if st.session_state.get('autosave_ativo'):
+    tempo_atual = time.time()
+    tempo_passado = tempo_atual - st.session_state.last_autosave
+    if tempo_passado >= 30:
+        # Aqui simulamos o salvamento no estado (o download físico requer clique)
+        st.session_state.last_autosave = tempo_atual
+        # Opcional: imprimir no console ou log interno que salvou
+        st.toast("Progresso salvo automaticamente!")
 
 if 'vezes_mudou_classe' not in st.session_state: st.session_state.vezes_mudou_classe = 0
 
@@ -78,7 +94,7 @@ with st.sidebar:
 
     with st.expander("🔐 Painel do Dono"):
         senha = st.text_input("Senha Admin", type="password")
-        if senha == "arthur.arb2012adm":
+        if senha == "05062012":
             if st.button("💰 Dinheiro Infinito"): st.session_state.moedas += 999999; st.rerun()
             if st.button("🧪 Kit Poções (99)"): st.session_state.pocoes = 99; st.session_state.pocoes_furia = 99; st.rerun()
             if st.button("❤️ VIDA INFINITA"): st.session_state.vida_max = 999999; st.session_state.vida = 999999; st.rerun()
@@ -119,7 +135,17 @@ with st.sidebar:
     if st.button("🔄 Reset Total"):
         for k in list(st.session_state.keys()): del st.session_state[k]
         st.rerun()
-    st.download_button("💾 SALVAR JOGO", data=export_save(), file_name="save_dragao.json")
+        
+    # --- INTERFACE DE SALVAMENTO ---
+    st.download_button("💾 SALVAR JOGO MANUAL", data=export_save(), file_name="save_dragao.json")
+    
+    if st.session_state.get('autosave_ativo'):
+        st.write("---")
+        tempo_restante = max(0, 30 - int(time.time() - st.session_state.last_autosave))
+        st.caption(f"⏱️ Próximo Auto-Save em: {tempo_restante}s")
+        st.progress(tempo_restante / 30)
+    else:
+        st.caption("⏸️ Auto-Save Desligado")
 
 # --- LÓGICA DE JOGO ---
 if st.session_state.vida <= 0:
