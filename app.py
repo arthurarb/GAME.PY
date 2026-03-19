@@ -78,7 +78,7 @@ with st.sidebar:
 
     with st.expander("🔐 Painel do Dono"):
         senha = st.text_input("Senha Admin", type="password")
-        if senha == "05062012":
+        if senha == "arthur.arb2012adm":
             if st.button("💰 Dinheiro Infinito"): st.session_state.moedas += 999999; st.rerun()
             if st.button("🧪 Kit Poções (99)"): st.session_state.pocoes = 99; st.session_state.pocoes_furia = 99; st.rerun()
             if st.button("❤️ VIDA INFINITA"): st.session_state.vida_max = 999999; st.session_state.vida = 999999; st.rerun()
