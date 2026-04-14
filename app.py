@@ -41,20 +41,25 @@ if 'nome_heroi' not in st.session_state:
                 'em_combate': False, 'monstro': None, 'na_vila': False,
                 'achou_vila': False, 'log': [f"{nome} iniciou a jornada!"],
                 'missoes_ativas': {}, 'em_dungeon': False, 'dungeon_tipo': None,
-                'autosave_ativo': autosave_opt, 'last_autosave': time.time()
+                'autosave_ativo': autosave_opt, 'last_autosave': time.time(),
+                'progresso_classes': {} # NOVO: Armazena o progresso de cada classe
             })
             st.rerun()
     st.stop()
 
 # --- LÓGICA DE NÍVEL (LEVEL UP) ---
-# Só ganha nível se tiver uma classe selecionada
 tem_classe = st.session_state.classe != "Nenhuma 👤"
-xp_necessario = st.session_state.nivel * 100
+
+# NOVO: Tabela de XP customizada
+def get_xp_necessario(nivel):
+    tabela = {1: 50, 2: 75, 3: 120, 4: 150, 5: 165, 6: 190, 7: 215, 8: 240, 9: 275}
+    return tabela.get(nivel, 999999)
+
+xp_necessario = get_xp_necessario(st.session_state.nivel)
 
 if tem_classe and st.session_state.xp >= xp_necessario and st.session_state.nivel < 10:
     st.session_state.nivel += 1
-    st.session_state.xp = 0
-    # Bonus Guerreiro: +3 de vida por nível
+    st.session_state.xp -= xp_necessario # Sobra de XP
     v_bonus = 3 if st.session_state.classe == "Guerreiro ⚔️" else 0
     st.session_state.vida_max += v_bonus
     st.session_state.vida = st.session_state.vida_max
@@ -69,14 +74,14 @@ if st.session_state.get('autosave_ativo'):
 
 # --- FUNÇÕES ---
 def spawn(tipo_nome=None):
-    # Monstros ganham 10% de vida por nível do jogador (arredondado para baixo)
     hp_mod = 1.0 + (st.session_state.nivel * 0.10)
     
+    # Valores de XP ajustados conforme pedido
     m_data = {
-        "Gosma 🟢": {"n": "Gosma 🟢", "v": int(30 * hp_mod), "d": 4, "o": 5, "xp": 25},
-        "Goblin 👺": {"n": "Goblin 👺", "v": int(50 * hp_mod), "d": 9, "o": 10, "xp": 50},
-        "Dragão 🐲": {"n": "Dragão 🐲", "v": int(80 * hp_mod), "d": 15, "o": 30, "xp": 100},
-        "🔥 REI DRAGÃO 🔥": {"n": "🔥 REI DRAGÃO 🔥", "v": int(500 * hp_mod), "d": 25, "o": 500, "xp": 500},
+        "Gosma 🟢": {"n": "Gosma 🟢", "v": int(30 * hp_mod), "d": 4, "o": 5, "xp": 2},
+        "Goblin 👺": {"n": "Goblin 👺", "v": int(50 * hp_mod), "d": 9, "o": 10, "xp": 6},
+        "Dragão 🐲": {"n": "Dragão 🐲", "v": int(80 * hp_mod), "d": 15, "o": 30, "xp": 12},
+        "🔥 REI DRAGÃO 🔥": {"n": "🔥 REI DRAGÃO 🔥", "v": int(500 * hp_mod), "d": 25, "o": 500, "xp": 50},
         "🌌 DRAGÃO DEUS 🌌": {"n": "🌌 DRAGÃO DEUS 🌌", "v": 9999, "d": 999, "o": 9999, "xp": 0}
     }
     if tipo_nome and tipo_nome in m_data:
@@ -91,7 +96,8 @@ with st.sidebar:
     
     if tem_classe:
         st.subheader(f"Nível de Classe: {st.session_state.nivel}")
-        st.progress(st.session_state.xp / xp_necessario if st.session_state.nivel < 10 else 1.0)
+        st.progress(min(1.0, st.session_state.xp / xp_necessario))
+        st.write(f"XP: {st.session_state.xp} / {xp_necessario}")
     else:
         st.info("Escolha uma classe para habilitar Nível e XP")
 
@@ -207,7 +213,6 @@ elif st.session_state.em_combate:
             if st.session_state.classe == "ADM ⚡": rec *= 11
             st.session_state.moedas += int(rec)
             
-            # Só ganha XP se já tiver uma classe
             if tem_classe:
                 st.session_state.xp += m['xp']
                 
@@ -234,28 +239,51 @@ elif st.session_state.na_vila:
     with t5:
         st.write("### Mago das Classes")
         st.info("Primeira vez: 50💰 | Próximas: 450💰 (Aleatório)")
-        st.write("- **Guerreiro**: +15 HP base | **Mago**: Fúria forte | **Ladino**: Chance Dungeon | **Paladino**: Cura extra | **Bárbaro**: Dano fixo | **Arqueiro**: Crítico | **Clérigo**: Regen | **Mercador**: +Ouro")
         custo = 50 if st.session_state.vezes_mudou_classe == 0 else 450
         if st.button(f"🔮 Ritual ({custo} 💰)"):
             if st.session_state.moedas >= custo:
+                # SALVAR PROGRESSO DA CLASSE ATUAL ANTES DE MUDAR
+                if tem_classe:
+                    st.session_state.progresso_classes[st.session_state.classe] = {
+                        "nivel": st.session_state.nivel,
+                        "xp": st.session_state.xp
+                    }
+                
                 st.session_state.moedas -= custo; st.session_state.vezes_mudou_classe += 1
                 nova = random.choice(["Guerreiro ⚔️", "Mago 🧙", "Ladino 🗡️", "Paladino 🛡️", "Bárbaro 🪓", "Arqueiro 🏹", "Clérigo ⛪", "Mercador 💰"])
                 st.session_state.classe = nova
+                
+                # CARREGAR PROGRESSO DA NOVA CLASSE (OU INICIAR DO ZERO)
+                dados_novos = st.session_state.progresso_classes.get(nova, {"nivel": 1, "xp": 0})
+                st.session_state.nivel = dados_novos["nivel"]
+                st.session_state.xp = dados_novos["xp"]
+                
                 st.session_state.vida_max = (115 if nova == "Guerreiro ⚔️" else 100) + st.session_state.armadura['bonus']
                 st.session_state.vida = st.session_state.vida_max; st.rerun()
 
     with t1:
         if st.button("🏹 Caçar Monstros ao Redor"): spawn(); st.rerun()
         st.write("---")
-        miss = [{"i": "Joshua", "de": "2 Gosmas", "a": {"Gosma 🟢": 2}, "p": 25}, {"i": "Silas", "de": "5 Gosmas", "a": {"Gosma 🟢": 5}, "p": 40}, {"i": "Maria", "de": "3 Goblins", "a": {"Goblin 👺": 3}, "p": 70}, {"i": "Bram", "de": "5 Gobs e 3 Gosmas", "a": {"Goblin 👺": 5, "Gosma 🟢": 3}, "p": 120}, {"i": "Elara", "de": "1 Dragão", "a": {"Dragão 🐲": 1}, "p": 150}, {"i": "REI", "de": "Mate o REI DRAGÃO", "a": {"🔥 REI DRAGÃO 🔥": 1}, "p": 500}]
+        # Missões agora incluem recompensa de XP
+        miss = [
+            {"i": "Joshua", "de": "2 Gosmas", "a": {"Gosma 🟢": 2}, "p": 25, "xp": 6},
+            {"i": "Silas", "de": "5 Gosmas", "a": {"Gosma 🟢": 5}, "p": 40, "xp": 20},
+            {"i": "Maria", "de": "3 Goblins", "a": {"Goblin 👺": 3}, "p": 70, "xp": 20},
+            {"i": "Bram", "de": "5 Gobs e 3 Gosmas", "a": {"Goblin 👺": 5, "Gosma 🟢": 3}, "p": 120, "xp": 40},
+            {"i": "Elara", "de": "1 Dragão", "a": {"Dragão 🐲": 1}, "p": 150, "xp": 15},
+            {"i": "Leon", "de": "5 Dragões", "a": {"Dragão 🐲": 5}, "p": 300, "xp": 75},
+            {"i": "REI", "de": "Mate o REI DRAGÃO", "a": {"🔥 REI DRAGÃO 🔥": 1}, "p": 500, "xp": 100}
+        ]
         for x in miss:
             if x['i'] not in st.session_state.missoes_ativas:
                 if st.button(f"Aceitar {x['i']}: {x['de']}"):
-                    st.session_state.missoes_ativas[x['i']] = {"a": x['a'], "p": {k:0 for k in x['a']}, "pago": x['p']}; st.rerun()
+                    st.session_state.missoes_ativas[x['i']] = {"a": x['a'], "p": {k:0 for k in x['a']}, "pago": x['p'], "xp_bonus": x['xp']}; st.rerun()
             else:
                 at = st.session_state.missoes_ativas[x['i']]
                 if all(at['p'][k] >= at['a'][k] for k in at['a']) and st.button(f"Entregar Missão {x['i']} ✅"):
-                    st.session_state.moedas += at['pago']; del st.session_state.missoes_ativas[x['i']]; st.rerun()
+                    st.session_state.moedas += at['pago']
+                    st.session_state.xp += at.get('xp_bonus', 0)
+                    del st.session_state.missoes_ativas[x['i']]; st.rerun()
 
     with t2:
         l_w = {"Pedra 🪨": (150, 10), "Ferro ⚔️": (250, 14), "Ouro 👑": (400, 18), "Cavaleiro 🛡️": (1000, 22), "Rei Caído 💀": (3500, 50)}
