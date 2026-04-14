@@ -47,15 +47,18 @@ if 'nome_heroi' not in st.session_state:
     st.stop()
 
 # --- LÓGICA DE NÍVEL (LEVEL UP) ---
+# Só ganha nível se tiver uma classe selecionada
+tem_classe = st.session_state.classe != "Nenhuma 👤"
 xp_necessario = st.session_state.nivel * 100
-if st.session_state.xp >= xp_necessario and st.session_state.nivel < 10:
+
+if tem_classe and st.session_state.xp >= xp_necessario and st.session_state.nivel < 10:
     st.session_state.nivel += 1
     st.session_state.xp = 0
     # Bonus Guerreiro: +3 de vida por nível
     v_bonus = 3 if st.session_state.classe == "Guerreiro ⚔️" else 0
     st.session_state.vida_max += v_bonus
     st.session_state.vida = st.session_state.vida_max
-    st.toast(f"✨ NÍVEL UP! Você agora é nível {st.session_state.nivel}!")
+    st.toast(f"✨ NÍVEL UP! Sua classe subiu para o nível {st.session_state.nivel}!")
 
 # --- LÓGICA DE AUTO-SAVE ---
 if st.session_state.get('autosave_ativo'):
@@ -66,7 +69,7 @@ if st.session_state.get('autosave_ativo'):
 
 # --- FUNÇÕES ---
 def spawn(tipo_nome=None):
-    # Monstros ganham 10% de HP por nível do jogador
+    # Monstros ganham 10% de vida por nível do jogador (arredondado para baixo)
     hp_mod = 1.0 + (st.session_state.nivel * 0.10)
     
     m_data = {
@@ -84,8 +87,14 @@ def spawn(tipo_nome=None):
 
 # --- SIDEBAR E PAINEL ADMIN ---
 with st.sidebar:
-    st.header(f"👤 {st.session_state.nome_heroi} (Lvl {st.session_state.nivel})")
-    st.progress(st.session_state.xp / xp_necessario if st.session_state.nivel < 10 else 1.0)
+    st.header(f"👤 {st.session_state.nome_heroi}")
+    
+    if tem_classe:
+        st.subheader(f"Nível de Classe: {st.session_state.nivel}")
+        st.progress(st.session_state.xp / xp_necessario if st.session_state.nivel < 10 else 1.0)
+    else:
+        st.info("Escolha uma classe para habilitar Nível e XP")
+
     st.success(f"Classe: {st.session_state.classe}")
     st.write(f"❤️ HP: {st.session_state.vida} / {st.session_state.vida_max}")
     st.progress(max(0.0, min(1.0, st.session_state.vida / st.session_state.vida_max)) if st.session_state.vida_max > 0 else 0.0)
@@ -161,22 +170,19 @@ if st.session_state.vida <= 0:
 
 elif st.session_state.em_combate:
     m = st.session_state.monstro
-    st.subheader(f"⚔️ Batalha: {m['n']} (Lvl Jogador: {st.session_state.nivel})")
+    st.subheader(f"⚔️ Batalha: {m['n']} (Lvl Classe: {st.session_state.nivel})")
     
     lvl = st.session_state.nivel
     d_base = st.session_state.espada['dano']
     
-    # Bônus Bárbaro: +5 base + 1 por nível
     if st.session_state.classe == "Bárbaro 🪓": d_base += (5 + (lvl - 1))
     
-    # Bônus Mago: 2.5x base + 0.05x por nível
     mag_mult = 2.5 + ((lvl-1) * 0.05)
     mult = mag_mult if (st.session_state.furia_rodadas > 0 and st.session_state.classe == "Mago 🧙") else (1.7 if st.session_state.furia_rodadas > 0 else 1.0)
     
     d_at = int(d_base * mult)
     if st.session_state.classe == "ADM ⚡": d_at *= 11
     
-    # Bônus Arqueiro: +5% chance e +0.05 dano por nível
     if st.session_state.classe == "Arqueiro 🏹":
         d_at = int(d_at * (1 + (lvl-1)*0.05))
         chance_crit = 0.2 + ((lvl-1) * 0.05)
@@ -191,7 +197,6 @@ elif st.session_state.em_combate:
     if b1.button("ATACAR!"):
         m['v'] -= d_at
         if st.session_state.furia_rodadas > 0: st.session_state.furia_rodadas -= 1
-        # Bônus Clérigo Nerfado: 3 base + 1 a cada 2 níveis
         if st.session_state.classe == "Clérigo ⛪": 
             regen = 3 + ((lvl-1) // 2)
             st.session_state.vida = min(st.session_state.vida_max, st.session_state.vida + regen)
@@ -201,7 +206,11 @@ elif st.session_state.em_combate:
             if st.session_state.classe == "Mercador 💰": rec = int(rec * 1.5)
             if st.session_state.classe == "ADM ⚡": rec *= 11
             st.session_state.moedas += int(rec)
-            st.session_state.xp += m['xp']
+            
+            # Só ganha XP se já tiver uma classe
+            if tem_classe:
+                st.session_state.xp += m['xp']
+                
             for n, d in st.session_state.missoes_ativas.items():
                 if m['n'] in d['p']: d['p'][m['n']] = min(d['a'][m['n']], d['p'][m['n']] + 1)
             st.session_state.em_combate = False; st.session_state.em_dungeon = False; st.rerun()
@@ -280,7 +289,7 @@ else:
         if roll <= prob_dun: 
             st.session_state.dungeon_tipo = random.choice(["Gosmas (Fácil)", "Goblins (Médio)", "Dragões (Difícil)", "COVIL DO REI DRAGÃO 👑"])
             st.session_state.em_dungeon = True
-        elif random.randint(1, 5) == 1: # Aumentei a chance da vila para 20%
+        elif random.randint(1, 5) == 1: 
             st.session_state.achou_vila = True
         st.rerun()
     if c2.button("Lutar 👾"): spawn(); st.rerun()
